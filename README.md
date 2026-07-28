@@ -1,58 +1,66 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# WysiwygEditor demo — NativePHP Mobile
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A SuperNative demo app showcasing
+[`vipertecpro/wysiwyg-editor`](https://github.com/vipertecpro/wysiwyg-editor):
+a **fully native** WYSIWYG rich text editor for NativePHP Mobile that returns
+clean, normalised HTML to PHP via an event.
 
-## About Laravel
+The plugin lives in its **own repository** so anyone can drop it into their own
+app; this repo exists purely to demonstrate it.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## The examples
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Each screen opens the *same* plugin with a different configuration:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Screen | What it shows |
+| --- | --- |
+| **Notes** | The full toolbar backed by SQLite — create, re-open and edit notes; the saved HTML round-trips losslessly |
+| **Comment Box** | The `comment` preset — bold / italic / link only, 500-character cap with a live counter |
+| **Composer** | Every tool enabled, with a toggle to inspect the **raw HTML** the plugin returned |
+| **Branded Theme** | The editor recoloured with the host app's palette (`background`, `text`, `accent`, `highlight`) |
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Running it
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+php artisan migrate --seed
+php artisan native:run ios
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Use `android` instead of `ios` for the Android build. The first run downloads
+the platform binaries and takes a while.
 
-## Contributing
+> This repo consumes the plugin through a Composer **path repository**
+> (`../wysiwyg-editor`) so both can be developed side by side. To use the
+> published package instead, drop that repository entry from `composer.json`
+> and require `vipertecpro/wysiwyg-editor` normally.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## How the integration works
 
-## Code of Conduct
+`App\Concerns\InteractsWithWysiwygEditor` holds the plumbing — it opens the
+editor with the screen's own options and handles the result events, so each
+example screen is just a preview plus a config:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```php
+use Vipertecpro\WysiwygEditor\Events\ContentSaved;
+use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
-## Security Vulnerabilities
+WysiwygEditor::open($html, ['preset' => 'comment', 'maxLength' => 500]);
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#[On(ContentSaved::class)]
+public function onSaved(string $html, string $text): void { /* … */ }
+```
 
-## License
+Native views have no HTML display element, so `App\Support\RichText` turns the
+plugin's HTML into block arrays that `resources/views/native/partials/rich-preview.blade.php`
+renders with `<text>` elements.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Tests
+
+```bash
+php artisan test
+```
+
+Covers the `RichText` helper, the `Note` model, and the editor screens
+themselves through NativePHP's component testing harness — asserting the right
+bridge calls go out and that saved content lands in the database.
