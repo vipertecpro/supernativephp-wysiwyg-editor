@@ -34,7 +34,7 @@
         >
             <icon name="text.bubble" :size="18" class="text-theme-on-surface-variant" />
             <text class="flex-1 text-sm text-theme-on-surface-variant">Write a comment…</text>
-            <icon name="bold.italic.underline" :size="16" class="text-theme-primary" />
+            <icon name="textformat" :size="16" class="text-theme-primary" />
         </row>
         <text class="text-center text-xs text-theme-on-surface-variant">
             `comment` preset · bold / italic / link · 500-character cap with live counter

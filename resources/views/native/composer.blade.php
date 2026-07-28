@@ -12,7 +12,7 @@
         <text class="flex-1 text-center text-base font-semibold text-theme-on-surface">Composer</text>
         @if ($html !== '')
             <pressable a11y-label="Toggle HTML view" class="w-[40] h-[40] items-center justify-center rounded-full" @press="toggleHtml">
-                <icon name="{{ $showHtml ? 'doc.richtext' : 'chevron.left.forwardslash.chevron.right' }}" :size="18" class="text-theme-primary" />
+                <icon name="{{ $showHtml ? 'doc' : 'chevron.left.forwardslash.chevron.right' }}" :size="18" class="text-theme-primary" />
             </pressable>
         @else
             <column class="w-[40] h-[40]" />
@@ -21,7 +21,7 @@
 
     @if ($html === '')
         <column class="w-full flex-1 items-center justify-center gap-4 px-8">
-            <icon name="doc.richtext" :size="60" class="text-theme-on-surface-variant" />
+            <icon name="doc" :size="60" class="text-theme-on-surface-variant" />
             <text class="text-center text-base font-semibold text-theme-on-surface">Nothing written yet</text>
             <text class="text-center text-sm text-theme-on-surface-variant">
                 Open the editor with every tool enabled — headings, lists, quotes, colors, links…

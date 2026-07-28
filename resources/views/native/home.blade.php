@@ -10,7 +10,7 @@
             {{-- Header --}}
             <column class="w-full items-center gap-2 mt-2">
                 <column class="w-16 h-16 rounded-2xl items-center justify-center bg-theme-surface-variant">
-                    <icon name="doc.richtext" :size="34" class="text-theme-primary" />
+                    <icon name="doc" :size="34" class="text-theme-primary" />
                 </column>
                 <text font="accent" class="text-2xl font-bold text-center text-theme-on-surface">
                     WYSIWYG Editor
@@ -78,7 +78,7 @@
                     @press="openThemed"
                 >
                     <column class="w-[44] h-[44] rounded-xl items-center justify-center bg-theme-surface-variant">
-                        <icon name="paintpalette" :size="22" class="text-theme-primary" />
+                        <icon name="slider.horizontal.3" :size="22" class="text-theme-primary" />
                     </column>
                     <column class="flex-1 gap-[2]">
                         <text class="text-base font-semibold text-theme-on-surface">Branded Theme</text>

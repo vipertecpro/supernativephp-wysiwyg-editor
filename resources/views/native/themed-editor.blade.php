@@ -56,7 +56,7 @@
             class="w-full items-center justify-center gap-2 rounded-full bg-[#F97316] px-4 py-3"
             @press="startEdit"
         >
-            <icon name="paintpalette" :size="18" class="text-white" />
+            <icon name="slider.horizontal.3" :size="18" class="text-white" />
             <text class="text-base font-semibold text-white">Open branded editor</text>
         </row>
         <text class="text-center text-xs text-white/50">
