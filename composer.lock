@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "93780d62d52aecfe8756f1bd739a5325",
+    "content-hash": "f9dd3447d9cb4e45c5aac3b2af70428e",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2450,6 +2450,61 @@
                 "source": "https://github.com/NativePHP/mobile-air/tree/4.0.0-rc.1"
             },
             "time": "2026-07-15T15:51:17+00:00"
+        },
+        {
+            "name": "nativephp/mobile-camera",
+            "version": "1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/NativePHP/mobile-camera.git",
+                "reference": "1cdbf3059517f3cf2b0e4a341b6c298eba4123f6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/NativePHP/mobile-camera/zipball/1cdbf3059517f3cf2b0e4a341b6c298eba4123f6",
+                "reference": "1cdbf3059517f3cf2b0e4a341b6c298eba4123f6",
+                "shasum": ""
+            },
+            "require": {
+                "nativephp/mobile": "^3.0 || ^4.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0",
+                "pestphp/pest": "^2.7|^3.0|^4.0"
+            },
+            "type": "nativephp-plugin",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Native\\Mobile\\Providers\\CameraServiceProvider"
+                    ]
+                },
+                "nativephp": {
+                    "manifest": "nativephp.json"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Native\\Mobile\\Providers\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "NativePHP",
+                    "email": "info@nativephp.com"
+                }
+            ],
+            "description": "Camera plugin for NativePHP Mobile (Photo capture, Video recording, Gallery picker)",
+            "support": {
+                "issues": "https://github.com/NativePHP/mobile-camera/issues",
+                "source": "https://github.com/NativePHP/mobile-camera/tree/1.0.4"
+            },
+            "time": "2026-07-17T01:38:16+00:00"
         },
         {
             "name": "nativephp/native-ui",
@@ -6621,12 +6676,79 @@
             "time": "2025-12-02T11:56:42+00:00"
         },
         {
+            "name": "vipertecpro/image-cropper",
+            "version": "v1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vipertecpro/image-cropper.git",
+                "reference": "54ad45457d96669357b52d8b28b2f3e008257995"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vipertecpro/image-cropper/zipball/54ad45457d96669357b52d8b28b2f3e008257995",
+                "reference": "54ad45457d96669357b52d8b28b2f3e008257995",
+                "shasum": ""
+            },
+            "require": {
+                "nativephp/mobile": "^3.0|^4.0",
+                "php": "^8.4"
+            },
+            "require-dev": {
+                "pestphp/pest": "^3.0"
+            },
+            "suggest": {
+                "nativephp/mobile-camera": "One convenient way to capture or pick an image to feed to ImageCropper::open() — any source of an image file path works."
+            },
+            "type": "nativephp-plugin",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Vipertecpro\\ImageCropper\\ImageCropperServiceProvider"
+                    ]
+                },
+                "nativephp": {
+                    "manifest": "nativephp.json"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Vipertecpro\\ImageCropper\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "vipertecpro",
+                    "email": "vipertecpro@gmail.com"
+                }
+            ],
+            "description": "A fully native, hand-written freehand image cropper for NativePHP Mobile.",
+            "homepage": "https://github.com/vipertecpro/image-cropper",
+            "keywords": [
+                "crop",
+                "cropper",
+                "editor",
+                "image",
+                "mobile",
+                "nativephp",
+                "photo"
+            ],
+            "support": {
+                "issues": "https://github.com/vipertecpro/image-cropper/issues",
+                "source": "https://github.com/vipertecpro/image-cropper/tree/v1.3.0"
+            },
+            "time": "2026-07-27T18:52:49+00:00"
+        },
+        {
             "name": "vipertecpro/wysiwyg-editor",
-            "version": "dev-main",
+            "version": "dev-android-implementation",
             "dist": {
                 "type": "path",
                 "url": "../wysiwyg-editor",
-                "reference": "9f3f621d17d98135b71714517a1d5fd061c26dfc"
+                "reference": "3d27d1c116ff0990712b7f7f3614fed3e580fa1b"
             },
             "require": {
                 "nativephp/mobile": "^3.0|^4.0",
@@ -6654,6 +6776,10 @@
             "scripts": {
                 "test": [
                     "pest"
+                ],
+                "test:ios": [
+                    "tests/native/ios/typecheck.sh",
+                    "tests/native/ios/run.sh"
                 ]
             },
             "license": [

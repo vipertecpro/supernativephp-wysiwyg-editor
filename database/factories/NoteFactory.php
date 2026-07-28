@@ -29,6 +29,23 @@ class NoteFactory extends Factory
         ];
     }
 
+    /** A note containing MEDIA blocks, to exercise the segment shell. */
+    public function withMedia(): static
+    {
+        $html = '<h1>Trip notes</h1>'
+            .'<p>The harbour at dawn.</p>'
+            .'<figure><img src="https://example.com/harbour.jpg" alt="Harbour"><figcaption>Dawn light</figcaption></figure>'
+            .'<p>Then we walked inland.</p>'
+            .'<hr>'
+            .'<figure data-poll="{&quot;version&quot;:2,&quot;blocks&quot;:[{&quot;id&quot;:&quot;p1&quot;,&quot;type&quot;:&quot;poll&quot;,&quot;question&quot;:&quot;Go back?&quot;,&quot;options&quot;:[{&quot;id&quot;:&quot;o1&quot;,&quot;label&quot;:&quot;Yes&quot;},{&quot;id&quot;:&quot;o2&quot;,&quot;label&quot;:&quot;Maybe&quot;}]}]}"></figure>'
+            .'<p>End of the day.</p>';
+
+        return $this->state(fn (): array => [
+            'body_html' => $html,
+            'body_text' => "Trip notes\nThe harbour at dawn.\nDawn light\nThen we walked inland.\n---\nGo back?\nEnd of the day.",
+        ]);
+    }
+
     /** A note that shows off every block and mark the editor supports. */
     public function showcase(): static
     {

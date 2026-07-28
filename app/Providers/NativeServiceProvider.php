@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Native\Mobile\Providers\CameraServiceProvider;
 use Nativephp\NativeUi\NativeUIServiceProvider;
+use Vipertecpro\ImageCropper\ImageCropperServiceProvider;
 use Vipertecpro\WysiwygEditor\WysiwygEditorServiceProvider;
 
 class NativeServiceProvider extends ServiceProvider
@@ -38,6 +40,8 @@ class NativeServiceProvider extends ServiceProvider
         return [
             WysiwygEditorServiceProvider::class,
             NativeUIServiceProvider::class,
+            CameraServiceProvider::class,
+            ImageCropperServiceProvider::class,
 
         ];
     }

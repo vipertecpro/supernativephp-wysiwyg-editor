@@ -53,6 +53,7 @@
         </row>
         <text class="text-center text-xs text-theme-on-surface-variant">
             The toggle up top shows the exact HTML the plugin returned — clean and normalised.
+            @if ($autosaves > 0) · auto-saved {{ $autosaves }}× while typing @endif
         </text>
     </column>
 </column>

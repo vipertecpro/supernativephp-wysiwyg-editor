@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         Note::factory()->showcase()->create();
+        Note::factory()->withMedia()->create();
         Note::factory()->count(2)->create();
     }
 }
