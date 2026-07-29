@@ -48,14 +48,6 @@ class XTimeline extends NativeComponent
     /** True once Delete is tapped: the same sheet asks to confirm. */
     public bool $confirmingDelete = false;
 
-    public function mount(): void
-    {
-        // A demo that opens on an empty feed shows nothing about the editor.
-        if (Post::count() === 0) {
-            Post::factory()->seeded()->count(4)->create();
-        }
-    }
-
     /** Open the composer for a NEW post. */
     public function compose(): void
     {

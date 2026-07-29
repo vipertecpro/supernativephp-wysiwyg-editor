@@ -2,9 +2,13 @@
     Demo 1 — a timeline in the shape of X. See App\NativeComponents\XTimeline.
 
     Everything here is ordinary layout. The part worth looking at is what
-    happens when you tap compose: that whole screen is the plugin, opened with
-    `toolbar => []`, a countdown ring and a filled Post pill — no formatting
-    bar, because a short-post composer does not have one.
+    happens when you tap compose: that whole screen is the plugin — no
+    formatting bar, a media row, a countdown ring and a filled Post pill.
+
+    Each post is ONE column rather than an avatar row wrapping everything
+    else. Nesting the media and the action bar inside a flex child left the
+    row under-measuring its own height, so the actions drew on top of the
+    next post.
 --}}
 <column class="w-full h-full bg-theme-background safe-area">
 
@@ -24,19 +28,30 @@
 
     <divider class="w-full" />
 
-    <scroll-view>
-        <column class="w-full">
-            @foreach ($posts as $post)
-                <row class="w-full px-4 pt-3 gap-3">
-                    <image
-                        src="https://i.pravatar.cc/150?u={{ $post->author_handle }}"
-                        alt="{{ $post->author_name }}"
-                        class="w-[40] h-[40] rounded-full"
-                        :fit="2"
-                    />
+    @if ($posts->isEmpty())
+        <column class="w-full flex-1 items-center justify-center gap-3 px-10">
+            <icon name="square.and.pencil" :size="44" class="text-theme-on-surface-variant" />
+            <text class="text-[17] font-bold text-theme-on-surface">Nothing here yet</text>
+            <text class="text-center text-[14] text-theme-on-surface-variant">
+                Tap the button below to write your first post with the native editor.
+            </text>
+        </column>
+    @else
+        <scroll-view class="w-full flex-1">
+            <column class="w-full">
+                @foreach ($posts as $post)
+                    @php($content = $post->content())
 
-                    <column class="flex-1 gap-1">
-                        <row class="items-center gap-1">
+                    <column class="w-full px-4 pt-3 pb-1">
+
+                        {{-- Header: avatar, name, handle, age, and the menu --}}
+                        <row class="w-full items-center gap-3">
+                            <image
+                                src="https://i.pravatar.cc/150?u={{ $post->author_handle }}"
+                                alt="{{ $post->author_name }}"
+                                class="w-[40] h-[40] rounded-full"
+                                :fit="2"
+                            />
                             <text class="text-[15] font-bold text-theme-on-surface">{{ $post->author_name }}</text>
                             <text class="text-[13] text-theme-on-surface-variant">{{ $post->author_handle }}</text>
                             <text class="text-[13] text-theme-on-surface-variant">· {{ $post->age() }}</text>
@@ -54,41 +69,40 @@
                             @endif
                         </row>
 
-                        @php($content = $post->content())
+                        {{-- Body, indented to clear the avatar --}}
+                        <column class="w-full pl-[52] pt-1">
+                            @if ($content['text'] !== '')
+                                <text class="text-[15] text-theme-on-surface">{{ $content['text'] }}</text>
+                            @endif
 
-                        @if ($content['text'] !== '')
-                            <text class="text-[15] text-theme-on-surface">{{ $content['text'] }}</text>
-                        @endif
+                            @include('native.partials.post-media', ['content' => $content, 'post' => $post])
 
-                        @include('native.partials.post-media', ['content' => $content, 'post' => $post])
-
-                        {{-- Understated and spread wide: the post is the
-                             content, these are just affordances. --}}
-                        <row class="w-full items-center justify-between py-2 pr-6">
-                            <row class="items-center gap-1">
-                                <icon name="bubble.left" :size="16" class="text-theme-on-surface-variant" />
-                                <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->replies) }}</text>
+                            <row class="w-full items-center justify-between pt-3 pb-2 pr-8">
+                                <row class="items-center gap-1">
+                                    <icon name="bubble.left" :size="16" class="text-theme-on-surface-variant" />
+                                    <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->replies) }}</text>
+                                </row>
+                                <row class="items-center gap-1">
+                                    <icon name="arrow.2.squarepath" :size="16" class="text-theme-on-surface-variant" />
+                                    <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->reposts) }}</text>
+                                </row>
+                                <row class="items-center gap-1">
+                                    <icon name="heart" :size="16" class="text-theme-on-surface-variant" />
+                                    <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->likes) }}</text>
+                                </row>
+                                <icon name="square.and.arrow.up" :size="16" class="text-theme-on-surface-variant" />
                             </row>
-                            <row class="items-center gap-1">
-                                <icon name="arrow.2.squarepath" :size="16" class="text-theme-on-surface-variant" />
-                                <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->reposts) }}</text>
-                            </row>
-                            <row class="items-center gap-1">
-                                <icon name="heart" :size="16" class="text-theme-on-surface-variant" />
-                                <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->likes) }}</text>
-                            </row>
-                            <icon name="square.and.arrow.up" :size="16" class="text-theme-on-surface-variant" />
-                        </row>
+                        </column>
                     </column>
-                </row>
 
-                <divider class="w-full" />
-            @endforeach
+                    <divider class="w-full" />
+                @endforeach
 
-            {{-- Clearance so the last post is not stuck under the button --}}
-            <column class="w-full h-[96]" />
-        </column>
-    </scroll-view>
+                {{-- Clearance so the last post is not stuck under the button --}}
+                <column class="w-full h-[96]" />
+            </column>
+        </scroll-view>
+    @endif
 
     {{-- Actions for your own post. Always in the tree; visibility is driven
          by which post was tapped. --}}
