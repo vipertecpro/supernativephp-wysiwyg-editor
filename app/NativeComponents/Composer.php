@@ -34,6 +34,8 @@ class Composer extends NativeComponent
             // No `theme` here on purpose: the editor should adopt the app's
             // own NativeUI palette automatically.
             'counts' => ['characters', 'words', 'readingTime'],
+            // Bottom sheets instead of a bar that scrolls off the screen.
+            'menu' => 'sheet',
             // Every user-visible string is overridable — here the save action
             // is renamed to match what this screen actually does.
             'strings' => ['save' => 'Publish'],
