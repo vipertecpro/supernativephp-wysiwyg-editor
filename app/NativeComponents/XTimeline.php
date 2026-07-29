@@ -11,6 +11,7 @@ use Native\Mobile\Edge\NativeComponent;
 use Vipertecpro\WysiwygEditor\Events\AccessoryTapped;
 use Vipertecpro\WysiwygEditor\Events\ContentSaved;
 use Vipertecpro\WysiwygEditor\Events\DraftRequested;
+use Vipertecpro\WysiwygEditor\Events\ToolTapped;
 use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
 /**
@@ -61,6 +62,9 @@ class XTimeline extends NativeComponent
      * @var array<string, string>
      */
     public array $draft = [];
+
+    /** Which of our own toolbar buttons was tapped last, for the demo. */
+    public string $lastTool = '';
 
     /** Open the composer for a NEW post. */
     public function compose(): void
@@ -222,6 +226,18 @@ class XTimeline extends NativeComponent
     }
 
     /**
+     * One of our own toolbar buttons was tapped.
+     *
+     * A real app would open a GIF picker or a scheduling sheet here. The
+     * editor knows nothing about either — it drew the button and told us.
+     */
+    #[On(ToolTapped::class)]
+    public function onToolTapped(string $tool): void
+    {
+        $this->lastTool = $tool;
+    }
+
+    /**
      * Show a photo or a video full-screen.
      *
      * Handed to the plugin, which already decodes images and plays video for
@@ -277,7 +293,15 @@ class XTimeline extends NativeComponent
             'placeholder' => "What's happening?",
             // No FORMATTING at all — but the media row X has, on one bar with
             // the ring, which is where the ring belongs.
-            'toolbar' => ['image', 'video', 'poll'],
+            'toolbar' => ['image', 'camera', 'video', 'poll'],
+            // Buttons the APP owns. The editor draws them and reports the tap;
+            // what a GIF picker or a scheduler does is our business.
+            'customTools' => [
+                ['id' => 'gif', 'icon' => 'embed', 'label' => 'GIF'],
+                ['id' => 'schedule', 'icon' => 'orderedList', 'label' => 'Schedule'],
+            ],
+            // The author, beside what they are writing.
+            'avatar' => 'https://i.pravatar.cc/150?u=you',
             'history' => false,
             // Attachments belong to the post, not to a position in the prose.
             'mediaLayout' => 'strip',
