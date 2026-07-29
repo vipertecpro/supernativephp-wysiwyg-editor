@@ -71,7 +71,10 @@ class XTimeline extends NativeComponent
         $post = Post::find($id);
 
         if ($post && $post->author_handle === self::HANDLE) {
-            $this->openEditor($post->body_html, (string) $post->id);
+            // Re-open from the JSON, not the HTML. HTML cannot carry a local
+            // file path, so a post whose photos never finished uploading would
+            // come back without them.
+            $this->openEditor($post->body_json ?: $post->body_html, (string) $post->id);
         }
     }
 
