@@ -10,6 +10,7 @@ use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\NativeComponent;
 use Vipertecpro\WysiwygEditor\Events\AccessoryTapped;
 use Vipertecpro\WysiwygEditor\Events\ContentSaved;
+use Vipertecpro\WysiwygEditor\Events\DraftRequested;
 use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
 /**
@@ -53,6 +54,13 @@ class XTimeline extends NativeComponent
     public string $location = '';
 
     public string $audience = 'Everyone';
+
+    /**
+     * The unsent post, if the writer backed out and kept it.
+     *
+     * @var array<string, string>
+     */
+    public array $draft = [];
 
     /** Open the composer for a NEW post. */
     public function compose(): void
@@ -184,6 +192,36 @@ class XTimeline extends NativeComponent
     }
 
     /**
+     * The user backed out but chose to keep what they had written.
+     *
+     * The editor hands the document over and steps back; where a draft lives
+     * is our business. This demo keeps it on the device like everything else —
+     * a real client would POST it to a drafts endpoint, or queue it.
+     */
+    #[On(DraftRequested::class)]
+    public function onDraftRequested(string $html, string $text, string $json = '', ?string $id = null): void
+    {
+        if ($id === null || ! str_starts_with($id, 'x-post-')) {
+            return;
+        }
+
+        $this->draft = ['html' => $html, 'text' => $text, 'json' => $json];
+    }
+
+    /** Resume a kept draft in the same editor. */
+    public function resumeDraft(): void
+    {
+        if ($this->draft !== []) {
+            $this->openEditor($this->draft['json'] ?: $this->draft['html'], 'new');
+        }
+    }
+
+    public function discardDraft(): void
+    {
+        $this->draft = [];
+    }
+
+    /**
      * Show a photo or a video full-screen.
      *
      * Handed to the plugin, which already decodes images and plays video for
@@ -256,6 +294,10 @@ class XTimeline extends NativeComponent
             'maxLengthMode' => 'soft',
             'countStyle' => 'ring',
             'saveStyle' => 'filled',
+            // Backing out of a half-written post should offer to keep it, not
+            // bin it — and the close control is a ✕, as in every composer.
+            'cancelMode' => 'draft',
+            'cancelStyle' => 'icon',
             'strings' => ['save' => $target === 'new' ? 'Post' : 'Save'],
             'id' => 'x-post-'.$target,
         ]);

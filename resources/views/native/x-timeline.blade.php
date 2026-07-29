@@ -28,6 +28,26 @@
 
     <divider class="w-full" />
 
+    {{-- A kept draft. The editor handed it over and stepped back; where it
+         lives is ours to decide. --}}
+    @if ($draft !== [])
+        <row class="w-full items-center gap-3 px-4 py-3 bg-theme-surface">
+            <icon name="square.and.pencil" :size="18" class="text-theme-primary" />
+            <column class="flex-1">
+                <text class="text-[14] font-semibold text-theme-on-surface">Unsent post</text>
+                <text class="text-[13] text-theme-on-surface-variant">{{ \Illuminate\Support\Str::limit($draft['text'], 48) }}</text>
+            </column>
+            <column @press="resumeDraft" a11y-label="Resume draft" class="px-3 py-1">
+                <text class="text-[14] font-semibold text-theme-primary">Resume</text>
+            </column>
+            <column @press="discardDraft" a11y-label="Discard draft" class="px-2 py-1">
+                <icon name="xmark" :size="16" class="text-theme-on-surface-variant" />
+            </column>
+        </row>
+
+        <divider class="w-full" />
+    @endif
+
     @if ($posts->isEmpty())
         <column class="w-full flex-1 items-center justify-center gap-3 px-10">
             <icon name="square.and.pencil" :size="44" class="text-theme-on-surface-variant" />
