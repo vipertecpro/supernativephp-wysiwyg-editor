@@ -40,6 +40,18 @@
                             <text class="text-[15] font-bold text-theme-on-surface">{{ $post->author_name }}</text>
                             <text class="text-[13] text-theme-on-surface-variant">{{ $post->author_handle }}</text>
                             <text class="text-[13] text-theme-on-surface-variant">· {{ $post->age() }}</text>
+
+                            @if ($post->author_handle === $mine)
+                                <column class="flex-1 items-end">
+                                    <column
+                                        @press="showActions({{ $post->id }})"
+                                        a11y-label="Post actions"
+                                        class="w-[28] h-[28] items-center justify-center"
+                                    >
+                                        <icon name="ellipsis" :size="16" class="text-theme-on-surface-variant" />
+                                    </column>
+                                </column>
+                            @endif
                         </row>
 
                         <text class="text-[15] text-theme-on-surface">{{ $post->body_text }}</text>
@@ -71,6 +83,51 @@
             <column class="w-full h-[96]" />
         </column>
     </scroll-view>
+
+    {{-- Actions for your own post. Always in the tree; visibility is driven
+         by which post was tapped. --}}
+    <bottom-sheet :visible="$actionsFor !== null" detents="small" @dismiss="closeActions">
+        @if ($actionsFor !== null)
+            @if ($confirmingDelete)
+                {{-- Confirming in the SAME sheet: a system alert chained off
+                     the sheet's dismissal is silently refused by iOS. --}}
+                <column class="w-full py-2">
+                    <column class="w-full px-6 py-4 gap-1">
+                        <text class="text-base font-semibold text-theme-on-surface">Delete post?</text>
+                        <text class="text-sm text-theme-on-surface-variant">This cannot be undone.</text>
+                    </column>
+
+                    <divider class="w-full" />
+
+                    <row @press="delete({{ $actionsFor }})" a11y-label="Confirm delete" class="w-full items-center gap-4 px-6 py-4">
+                        <icon name="trash" :size="20" class="text-[#EF4444]" />
+                        <text class="text-base font-semibold text-[#EF4444]">Delete</text>
+                    </row>
+
+                    <divider class="w-full" />
+
+                    <row @press="cancelDelete" a11y-label="Keep post" class="w-full items-center gap-4 px-6 py-4">
+                        <icon name="xmark" :size="20" class="text-theme-on-surface" />
+                        <text class="text-base text-theme-on-surface">Keep</text>
+                    </row>
+                </column>
+            @else
+                <column class="w-full py-2">
+                    <row @press="edit({{ $actionsFor }})" a11y-label="Edit post" class="w-full items-center gap-4 px-6 py-4">
+                        <icon name="square.and.pencil" :size="20" class="text-theme-on-surface" />
+                        <text class="text-base text-theme-on-surface">Edit post</text>
+                    </row>
+
+                    <divider class="w-full" />
+
+                    <row @press="confirmDelete" a11y-label="Delete post" class="w-full items-center gap-4 px-6 py-4">
+                        <icon name="trash" :size="20" class="text-[#EF4444]" />
+                        <text class="text-base text-[#EF4444]">Delete post</text>
+                    </row>
+                </column>
+            @endif
+        @endif
+    </bottom-sheet>
 
     {{-- Compose. Absolute so it floats over the feed without blocking
          scrolling — it only occupies its own 56x56. --}}

@@ -36,7 +36,7 @@ class Post extends Model
     /** "2h", "3d" — the compact relative time a timeline uses. */
     public function age(): string
     {
-        $seconds = max(0, $this->created_at?->diffInSeconds() ?? 0);
+        $seconds = (int) max(0, $this->created_at?->diffInSeconds() ?? 0);
 
         return match (true) {
             $seconds < 60 => $seconds.'s',

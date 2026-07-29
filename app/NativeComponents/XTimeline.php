@@ -13,10 +13,14 @@ use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
  * Demo 1 — a short-post composer in the shape of X.
  *
  * The point of this screen is that the WHOLE composer is the plugin. There is
- * no formatting bar, no headings, no lists: `toolbar => []` turns the bar off
- * entirely, `history => false` drops undo/redo, and what is left is a
- * plain-text field with a photo button, a countdown ring and a filled Post
- * pill — which is exactly what X's composer is.
+ * no formatting bar, no headings, no lists: `history => false` drops undo/redo
+ * and the toolbar is just the media row, so what is left is a plain-text field
+ * with a countdown ring and a filled Post pill — which is what X's composer is.
+ *
+ * Writing, reading, editing and deleting a post all run through that same
+ * editor, which is the part worth showing: `open($post->body_html)` re-opens
+ * an existing post with its content intact, and the `id` option is what tells
+ * the save handler which row it belongs to.
  *
  * The layout and interactions are modelled on X; the branding is our own,
  * because copying the interaction design is the point and copying a logo is
@@ -32,6 +36,12 @@ class XTimeline extends NativeComponent
     /** 280, the limit the ring counts toward. */
     public const LIMIT = 280;
 
+    /** The post whose actions sheet is open, if any. */
+    public ?int $actionsFor = null;
+
+    /** True once Delete is tapped: the same sheet asks to confirm. */
+    public bool $confirmingDelete = false;
+
     public function mount(): void
     {
         // A demo that opens on an empty feed shows nothing about the editor.
@@ -40,19 +50,97 @@ class XTimeline extends NativeComponent
         }
     }
 
-    /**
-     * Open the composer.
-     *
-     * Everything that makes this look like X rather than a word processor is
-     * in these options — none of it is a special case inside the plugin.
-     */
+    /** Open the composer for a NEW post. */
     public function compose(): void
     {
-        WysiwygEditor::open('', [
-            'title' => '',
+        $this->openEditor('', 'new');
+    }
+
+    /** Re-open an existing post in the same editor, content intact. */
+    public function edit(int $id): void
+    {
+        $this->actionsFor = null;
+        $this->confirmingDelete = false;
+
+        $post = Post::find($id);
+
+        if ($post && $post->author_handle === self::HANDLE) {
+            $this->openEditor($post->body_html, (string) $post->id);
+        }
+    }
+
+    /** The `···` on your own posts. */
+    public function showActions(int $id): void
+    {
+        $this->actionsFor = $id;
+    }
+
+    public function closeActions(): void
+    {
+        $this->actionsFor = null;
+        $this->confirmingDelete = false;
+    }
+
+    /**
+     * Deleting cannot be undone, so it asks first — in the SAME sheet.
+     *
+     * A system alert chained off the sheet's dismissal never appeared: iOS
+     * refuses to present one while a sheet is still on its way out, silently.
+     * Confirming in place sidesteps that entirely, and a destructive
+     * confirmation inside the action sheet is what iOS apps do anyway.
+     */
+    public function confirmDelete(): void
+    {
+        $this->confirmingDelete = true;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->confirmingDelete = false;
+    }
+
+    public function delete(int $id): void
+    {
+        Post::whereKey($id)->where('author_handle', self::HANDLE)->delete();
+
+        $this->actionsFor = null;
+        $this->confirmingDelete = false;
+    }
+
+    #[On(ContentSaved::class)]
+    public function onPosted(string $html, string $text, string $json = '', ?string $id = null): void
+    {
+        if ($id === null || ! str_starts_with($id, 'x-post-') || trim($text) === '') {
+            return;
+        }
+
+        $target = substr($id, strlen('x-post-'));
+
+        if ($target === 'new') {
+            Post::create([
+                'author_name' => self::AUTHOR,
+                'author_handle' => self::HANDLE,
+                'body_html' => $html,
+                'body_text' => $text,
+            ]);
+
+            return;
+        }
+
+        // The id came from us, but a save handler that trusts an id it was
+        // handed is a habit worth not forming — an edit only ever touches
+        // your own row.
+        Post::whereKey((int) $target)
+            ->where('author_handle', self::HANDLE)
+            ->update(['body_html' => $html, 'body_text' => $text]);
+    }
+
+    protected function openEditor(string $html, string $target): void
+    {
+        WysiwygEditor::open($html, [
             'placeholder' => "What's happening?",
-            // No FORMATTING at all — but the media row X has, on one bar
-            // with the ring, which is where the ring belongs.
+            // No FORMATTING at all — but the media row X has, on one bar with
+            // the ring, which is where the ring belongs.
             'toolbar' => ['image', 'video', 'poll'],
             'history' => false,
             'maxLength' => self::LIMIT,
@@ -61,23 +149,8 @@ class XTimeline extends NativeComponent
             'maxLengthMode' => 'soft',
             'countStyle' => 'ring',
             'saveStyle' => 'filled',
-            'strings' => ['save' => 'Post'],
-            'id' => 'x-post',
-        ]);
-    }
-
-    #[On(ContentSaved::class)]
-    public function onPosted(string $html, string $text, string $json = '', ?string $id = null): void
-    {
-        if ($id !== 'x-post' || trim($text) === '') {
-            return;
-        }
-
-        Post::create([
-            'author_name' => self::AUTHOR,
-            'author_handle' => self::HANDLE,
-            'body_html' => $html,
-            'body_text' => $text,
+            'strings' => ['save' => $target === 'new' ? 'Post' : 'Save'],
+            'id' => 'x-post-'.$target,
         ]);
     }
 
@@ -85,6 +158,7 @@ class XTimeline extends NativeComponent
     {
         return $this->view('x-timeline', [
             'posts' => Post::query()->latest('created_at')->latest('id')->get(),
+            'mine' => self::HANDLE,
         ]);
     }
 }
