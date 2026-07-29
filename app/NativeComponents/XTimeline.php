@@ -174,6 +174,8 @@ class XTimeline extends NativeComponent
             // the ring, which is where the ring belongs.
             'toolbar' => ['image', 'video', 'poll'],
             'history' => false,
+            // Attachments belong to the post, not to a position in the prose.
+            'mediaLayout' => 'strip',
             'maxLength' => self::LIMIT,
             // Let the writer overrun and see by how much, rather than
             // swallowing the keystroke.

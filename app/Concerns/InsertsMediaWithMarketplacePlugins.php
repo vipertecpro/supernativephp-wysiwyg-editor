@@ -47,7 +47,7 @@ trait InsertsMediaWithMarketplacePlugins
 
         match ($kind) {
             // Photos are the one kind worth picking several of at a time.
-            'image' => Camera::pickImages('images', true, 10),
+            'image' => Camera::pickImages('images', true, \Vipertecpro\WysiwygEditor\WysiwygEditor::DEFAULT_MAX_MEDIA),
             'video' => Camera::pickImages('videos', false),
             // No document picker exists in the marketplace yet, so `all` is
             // the closest thing. A real app would open its own — which is
