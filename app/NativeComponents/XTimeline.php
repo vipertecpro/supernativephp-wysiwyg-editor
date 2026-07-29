@@ -108,6 +108,11 @@ class XTimeline extends NativeComponent
 
     public function delete(int $id): void
     {
+        // A real client would DELETE against its API here — and would decide
+        // whether removing a post also removes its attachments. This demo
+        // leaves the files: they are small, and an attachment that outlives
+        // its post is clutter, while deleting one still referenced elsewhere
+        // breaks a post that was fine.
         Post::whereKey($id)->where('author_handle', self::HANDLE)->delete();
 
         $this->actionsFor = null;
@@ -134,6 +139,29 @@ class XTimeline extends NativeComponent
         }
 
         $target = substr($id, strlen('x-post-'));
+
+        // ────────────────────────────────────────────────────────────────
+        //  REPLACE THIS WITH YOUR API.
+        // ────────────────────────────────────────────────────────────────
+        //
+        // The post is written to SQLite ON THE DEVICE because this demo has no
+        // server. A real client sends it and keeps whatever the server returns:
+        //
+        //     Http::withToken($user->apiToken)
+        //         ->post('https://api.example.com/v1/posts', [
+        //             'html' => $html,          // to render
+        //             'text' => $text,          // for search and excerpts
+        //             'json' => $json,          // canonical — media and polls
+        //         ]);
+        //
+        // Send `json` if you ever want the post to be EDITABLE again. HTML
+        // cannot carry a local file path or a poll's option ids, so a post
+        // re-opened from HTML alone comes back without them — which is why
+        // `edit()` below hands `body_json` to the editor, not `body_html`.
+        //
+        // Offline-first apps write locally first and sync after; the editor is
+        // indifferent either way, because it has already handed you everything
+        // it knows.
 
         if ($target === 'new') {
             Post::create([

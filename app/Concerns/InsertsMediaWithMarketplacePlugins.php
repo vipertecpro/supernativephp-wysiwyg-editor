@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Support\MediaStore;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Events\Gallery\MediaSelected;
 use Native\Mobile\Facades\Camera;
@@ -119,18 +120,56 @@ trait InsertsMediaWithMarketplacePlugins
     }
 
     /**
-     * Hand the local file to the editor. It renders immediately from
-     * `localPath`, so the user sees the media before any upload starts.
+     * Hand the local file to the editor, then "upload" it.
+     *
+     * Two steps on purpose, because that is the shape of the real thing:
+     *
+     *  1. Insert immediately with `localPath`, so the picture appears the
+     *     instant it is picked and the user can carry on writing.
+     *  2. Store it and report the outcome, which swaps the block's temporary
+     *     path for a permanent one and clears the pending state.
+     *
+     * ────────────────────────────────────────────────────────────────────
+     *  REPLACE STEP 2 WITH YOUR UPLOAD API.
+     * ────────────────────────────────────────────────────────────────────
+     *
+     * This demo has no server, so {@see MediaStore} copies the file into the
+     * device's own storage and hands back a path. A real app POSTs the file
+     * and hands back the URL its server returned — the editor cannot tell the
+     * difference, and nothing else here changes.
+     *
+     * A real upload also takes time, so it belongs in a queued job or
+     * `nativephp/mobile-background-tasks`, calling
+     * {@see WysiwygEditor::uploadProgress()} as it goes. The user keeps
+     * typing; the block shows its own progress.
      */
     protected function insertPickedMedia(string $path): void
     {
-        $this->pendingUploadId = 'up-'.substr(md5($path.microtime()), 0, 8);
+        $uploadId = 'up-'.substr(md5($path.microtime()), 0, 8);
+        $this->pendingUploadId = $uploadId;
 
         WysiwygEditor::insertMedia($this->pendingMediaKind, [
             'localPath' => $path,
             'alt' => basename($path),
-            'uploadId' => $this->pendingUploadId,
+            'uploadId' => $uploadId,
         ]);
+
+        // ── Where your API call goes ────────────────────────────────────
+        // $url = Http::attach('file', file_get_contents($path), basename($path))
+        //     ->withToken($user->apiToken)
+        //     ->post('https://api.example.com/v1/media')
+        //     ->json('url');
+        $url = MediaStore::store($path);
+
+        if ($url === '') {
+            // Tell the editor rather than leaving the block spinning: it marks
+            // the block failed so the user can remove it and try again.
+            WysiwygEditor::uploadFailed($uploadId, 'Could not store this file.');
+
+            return;
+        }
+
+        WysiwygEditor::uploadCompleted($uploadId, $url);
 
         // A real app would upload here — with its own auth and endpoint, or
         // nativephp/mobile-background-tasks — then report the outcome:
