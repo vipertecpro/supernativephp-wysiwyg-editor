@@ -22,6 +22,9 @@ class Notes extends NativeComponent
     protected function editorOptions(): array
     {
         return [
+            // Bigger type and a roomier measure — the whole ramp follows.
+            'typography' => ['fontSize' => 20],
+            'spacing' => 'roomy',
             'placeholder' => 'Start with a title — the first line names the note…',
         ];
     }
