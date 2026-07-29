@@ -12,6 +12,11 @@ use Native\Mobile\Edge\NativeComponent;
  */
 class Home extends NativeComponent
 {
+    public function openX(): void
+    {
+        $this->navigate('/x');
+    }
+
     public function openNotes(): void
     {
         $this->navigate('/notes');
