@@ -2,7 +2,9 @@
 
 namespace App\NativeComponents;
 
+use App\Concerns\InsertsMediaWithMarketplacePlugins;
 use App\Models\Post;
+use App\Support\PostContent;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\NativeComponent;
@@ -28,6 +30,10 @@ use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
  */
 class XTimeline extends NativeComponent
 {
+    // The photo / video buttons in the composer ask the HOST to pick; without
+    // this the editor emits MediaRequested and nothing is listening.
+    use InsertsMediaWithMarketplacePlugins;
+
     /** The account doing the posting, as a real client would know it. */
     public const AUTHOR = 'You';
 
@@ -110,7 +116,19 @@ class XTimeline extends NativeComponent
     #[On(ContentSaved::class)]
     public function onPosted(string $html, string $text, string $json = '', ?string $id = null): void
     {
-        if ($id === null || ! str_starts_with($id, 'x-post-') || trim($text) === '') {
+        if ($id === null || ! str_starts_with($id, 'x-post-')) {
+            return;
+        }
+
+        // A photo with no caption, or a poll on its own, is a real post — so
+        // "empty" has to mean no words AND no blocks, not no words.
+        $parsed = PostContent::parse($json);
+        $hasContent = trim($text) !== ''
+            || $parsed['images'] !== []
+            || $parsed['video'] !== null
+            || $parsed['poll'] !== null;
+
+        if (! $hasContent) {
             return;
         }
 
@@ -122,6 +140,7 @@ class XTimeline extends NativeComponent
                 'author_handle' => self::HANDLE,
                 'body_html' => $html,
                 'body_text' => $text,
+                'body_json' => $json,
             ]);
 
             return;
@@ -132,7 +151,19 @@ class XTimeline extends NativeComponent
         // your own row.
         Post::whereKey((int) $target)
             ->where('author_handle', self::HANDLE)
-            ->update(['body_html' => $html, 'body_text' => $text]);
+            ->update(['body_html' => $html, 'body_text' => $text, 'body_json' => $json]);
+    }
+
+    /**
+     * Show a photo or a video full-screen.
+     *
+     * Handed to the plugin, which already decodes images and plays video for
+     * its own cards — and the platform ships no video element to build a
+     * second viewer out of.
+     */
+    public function preview(string $kind, string $source, string $caption = ''): void
+    {
+        WysiwygEditor::preview($kind, $source, $caption);
     }
 
     protected function openEditor(string $html, string $target): void

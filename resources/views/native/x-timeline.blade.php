@@ -54,7 +54,13 @@
                             @endif
                         </row>
 
-                        <text class="text-[15] text-theme-on-surface">{{ $post->body_text }}</text>
+                        @php($content = $post->content())
+
+                        @if ($content['text'] !== '')
+                            <text class="text-[15] text-theme-on-surface">{{ $content['text'] }}</text>
+                        @endif
+
+                        @include('native.partials.post-media', ['content' => $content, 'post' => $post])
 
                         {{-- Understated and spread wide: the post is the
                              content, these are just affordances. --}}

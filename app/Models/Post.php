@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PostContent;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,9 +21,27 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
-        'author_name', 'author_handle', 'body_html', 'body_text',
+        'author_name', 'author_handle', 'body_html', 'body_text', 'body_json',
         'replies', 'reposts', 'likes',
     ];
+
+    /**
+     * The parts a timeline row draws: words, photos, video, poll.
+     *
+     * @return array{text: string, images: list<array<string, string>>,
+     *               video: ?array<string, string>, poll: ?array<string, mixed>}
+     */
+    public function content(): array
+    {
+        $parsed = PostContent::parse((string) $this->body_json);
+
+        // Posts seeded without JSON still have to render something.
+        if ($parsed['text'] === '' && $parsed['images'] === [] && ! $parsed['video'] && ! $parsed['poll']) {
+            $parsed['text'] = $this->body_text;
+        }
+
+        return $parsed;
+    }
 
     /** Initials for the avatar circle, the way a client does without a photo. */
     public function initials(): string

@@ -16,6 +16,8 @@ return new class extends Migration
             // rendition it delivers alongside is what the timeline shows.
             $table->text('body_html');
             $table->text('body_text');
+            // The canonical form — media and poll options only survive here.
+            $table->text('body_json')->nullable();
             $table->unsignedInteger('replies')->default(0);
             $table->unsignedInteger('reposts')->default(0);
             $table->unsignedInteger('likes')->default(0);
