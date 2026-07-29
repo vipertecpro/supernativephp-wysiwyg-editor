@@ -8,6 +8,7 @@ use App\Support\PostContent;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\NativeComponent;
+use Vipertecpro\WysiwygEditor\Events\AccessoryTapped;
 use Vipertecpro\WysiwygEditor\Events\ContentSaved;
 use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
@@ -47,6 +48,11 @@ class XTimeline extends NativeComponent
 
     /** True once Delete is tapped: the same sheet asks to confirm. */
     public bool $confirmingDelete = false;
+
+    /** Chosen in the composer through the accessory rows. */
+    public string $location = '';
+
+    public string $audience = 'Everyone';
 
     /** Open the composer for a NEW post. */
     public function compose(): void
@@ -161,6 +167,44 @@ class XTimeline extends NativeComponent
         WysiwygEditor::preview($kind, $source, $caption);
     }
 
+    /**
+     * One of our own rows was tapped inside the editor.
+     *
+     * A real app would open a people picker or ask for a location here. The
+     * editor stays open throughout; `setAccessory` writes the answer back into
+     * the row so the user sees what they chose.
+     */
+    #[On(AccessoryTapped::class)]
+    public function onAccessoryTapped(string $accessory): void
+    {
+        match ($accessory) {
+            'location' => $this->chooseLocation(),
+            'audience' => $this->cycleAudience(),
+            default => null,
+        };
+    }
+
+    protected function chooseLocation(): void
+    {
+        $this->location = $this->location === '' ? 'San Francisco' : '';
+
+        WysiwygEditor::setAccessory(
+            'location',
+            $this->location === '' ? 'Add location' : 'Location',
+            $this->location,
+        );
+    }
+
+    protected function cycleAudience(): void
+    {
+        $order = ['Everyone', 'People you follow', 'Only accounts you mention'];
+        $next = $order[(array_search($this->audience, $order, true) + 1) % count($order)];
+
+        $this->audience = $next;
+
+        WysiwygEditor::setAccessory('audience', 'Everyone can reply', $next);
+    }
+
     protected function openEditor(string $html, string $target): void
     {
         WysiwygEditor::open($html, [
@@ -171,6 +215,13 @@ class XTimeline extends NativeComponent
             'history' => false,
             // Attachments belong to the post, not to a position in the prose.
             'mediaLayout' => 'strip',
+            // Rows the APP owns. The editor draws them and reports the tap;
+            // who may reply is our data, not the editor's business.
+            'accessories' => [
+                ['id' => 'tag', 'label' => 'Tag people', 'icon' => 'image'],
+                ['id' => 'location', 'label' => 'Add location', 'icon' => 'link', 'value' => $this->location],
+                ['id' => 'audience', 'label' => 'Everyone can reply', 'value' => $this->audience],
+            ],
             'maxLength' => self::LIMIT,
             // Let the writer overrun and see by how much, rather than
             // swallowing the keystroke.
