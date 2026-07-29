@@ -21,6 +21,9 @@ trait InteractsWithWysiwygEditor
     /** The current content as the plugin's normalised HTML ('' when empty). */
     public string $html = '';
 
+    /** The canonical document — what Markdown export reads. */
+    public string $json = '';
+
     /** The matching plain-text rendition delivered by the plugin. */
     public string $text = '';
 
@@ -41,9 +44,10 @@ trait InteractsWithWysiwygEditor
     }
 
     #[On(ContentSaved::class)]
-    public function onContentSaved(string $html, string $text, ?string $id = null): void
+    public function onContentSaved(string $html, string $text, string $json = '', ?string $id = null): void
     {
         $this->html = $html;
+        $this->json = $json;
         $this->text = $text;
 
         $this->contentSaved($id);

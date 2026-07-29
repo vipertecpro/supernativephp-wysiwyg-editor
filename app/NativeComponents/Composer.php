@@ -7,6 +7,7 @@ use App\Concerns\InteractsWithWysiwygEditor;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Edge\NativeComponent;
 use Vipertecpro\WysiwygEditor\Events\ContentChanged;
+use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
 /**
  * Composer example — the full toolbar, plus a look under the hood.
@@ -20,8 +21,8 @@ class Composer extends NativeComponent
     use InsertsMediaWithMarketplacePlugins;
     use InteractsWithWysiwygEditor;
 
-    /** When true the preview shows the raw HTML instead of rendered blocks. */
-    public bool $showHtml = false;
+    /** Which preview is showing: rendered blocks, raw HTML, or Markdown. */
+    public string $preview = 'rendered';
 
     /** How many times the editor has told us the document settled. */
     public int $autosaves = 0;
@@ -52,8 +53,19 @@ class Composer extends NativeComponent
         $this->autosaves++;
     }
 
+    /** Cycle the preview, so one control shows all three formats. */
     public function toggleHtml(): void
     {
-        $this->showHtml = ! $this->showHtml;
+        $this->preview = match ($this->preview) {
+            'rendered' => 'html',
+            'html' => 'markdown',
+            default => 'rendered',
+        };
+    }
+
+    /** The document as Markdown — exported from the JSON, not the HTML. */
+    public function markdown(): string
+    {
+        return WysiwygEditor::toMarkdown($this->json);
     }
 }

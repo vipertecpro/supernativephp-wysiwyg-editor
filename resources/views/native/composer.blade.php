@@ -12,7 +12,7 @@
         <text class="flex-1 text-center text-base font-semibold text-theme-on-surface">Composer</text>
         @if ($html !== '')
             <pressable a11y-label="Toggle HTML view" class="w-[40] h-[40] items-center justify-center rounded-full" @press="toggleHtml">
-                <icon name="{{ $showHtml ? 'doc' : 'chevron.left.forwardslash.chevron.right' }}" :size="18" class="text-theme-primary" />
+                <icon name="{{ $preview === 'rendered' ? 'chevron.left.forwardslash.chevron.right' : 'doc' }}" :size="18" class="text-theme-primary" />
             </pressable>
         @else
             <column class="w-[40] h-[40]" />
@@ -30,9 +30,17 @@
     @else
         <scroll-view class="w-full flex-1">
             <column class="w-full px-5 py-3">
-                @if ($showHtml)
+                @if ($preview === 'html')
                     <column class="w-full rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4">
                         <text class="text-xs font-mono text-theme-on-surface" selectable>{{ $html }}</text>
+                    </column>
+                @elseif ($preview === 'markdown')
+                    {{-- One <text> per line: a single one collapses the blank
+                         lines that separate Markdown blocks. --}}
+                    <column class="w-full rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4">
+                        @foreach (explode("\n", $this->markdown()) as $line)
+                            <text class="text-xs font-mono text-theme-on-surface" selectable>{{ $line === '' ? ' ' : $line }}</text>
+                        @endforeach
                     </column>
                 @else
                     @include('native.partials.rich-preview', ['blocks' => $this->previewBlocks()])
@@ -52,7 +60,7 @@
             <text class="text-base font-semibold text-theme-on-primary">{{ $html === '' ? 'Start writing' : 'Keep editing' }}</text>
         </row>
         <text class="text-center text-xs text-theme-on-surface-variant">
-            The toggle up top shows the exact HTML the plugin returned — clean and normalised.
+            Tap the toggle to cycle rendered · HTML · Markdown.
             @if ($autosaves > 0) · auto-saved {{ $autosaves }}× while typing @endif
         </text>
     </column>
