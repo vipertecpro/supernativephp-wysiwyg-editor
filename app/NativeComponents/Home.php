@@ -22,6 +22,11 @@ class Home extends NativeComponent
         $this->navigate('/linkedin');
     }
 
+    public function openFacebook(): void
+    {
+        $this->navigate('/facebook');
+    }
+
     public function openNotes(): void
     {
         $this->navigate('/notes');

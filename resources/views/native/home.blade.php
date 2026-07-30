@@ -24,8 +24,8 @@
             <column class="w-full gap-3">
 
                 <row
-                    a11y-label="Notes"
-                    a11y-hint="A real notes app backed by the full editor"
+                    a11y-label="X"
+                    a11y-hint="Short posts with a countdown ring"
                     class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"
                     @press="openX"
                 >
@@ -34,14 +34,14 @@
                     </column>
                     <column class="flex-1 gap-[2]">
                         <text class="text-base font-semibold text-theme-on-surface">X · short posts</text>
-                        <text class="text-xs text-theme-on-surface-variant">Full toolbar · saved to SQLite · edit &amp; re-edit</text>
+                        <text class="text-xs text-theme-on-surface-variant">No formatting · countdown ring · drafts</text>
                     </column>
                     <icon name="chevron.right" :size="16" class="text-theme-on-surface-variant" />
                 </row>
 
-                    <row
-                    a11y-label="Notes"
-                    a11y-hint="A real notes app backed by the full editor"
+                <row
+                    a11y-label="LinkedIn"
+                    a11y-hint="Long-form posting with mentions and hashtags"
                     class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"
                     @press="openLinkedIn"
                 >
@@ -50,12 +50,28 @@
                     </column>
                     <column class="flex-1 gap-[2]">
                         <text class="text-base font-semibold text-theme-on-surface">LinkedIn · long-form</text>
-                        <text class="text-xs text-theme-on-surface-variant">Full toolbar · saved to SQLite · edit &amp; re-edit</text>
+                        <text class="text-xs text-theme-on-surface-variant">Mentions &amp; hashtags · sheets · see more</text>
                     </column>
                     <icon name="chevron.right" :size="16" class="text-theme-on-surface-variant" />
                 </row>
 
-                    <row
+                <row
+                    a11y-label="Facebook"
+                    a11y-hint="Short posts written on a colour, held large"
+                    class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"
+                    @press="openFacebook"
+                >
+                    <column class="w-[44] h-[44] rounded-xl items-center justify-center bg-theme-surface-variant">
+                        <icon name="photo" :size="22" class="text-theme-primary" />
+                    </column>
+                    <column class="flex-1 gap-[2]">
+                        <text class="text-base font-semibold text-theme-on-surface">Facebook · rich posts</text>
+                        <text class="text-xs text-theme-on-surface-variant">A few words on a colour · media · audience</text>
+                    </column>
+                    <icon name="chevron.right" :size="16" class="text-theme-on-surface-variant" />
+                </row>
+
+                <row
                     a11y-label="Notes"
                     a11y-hint="A real notes app backed by the full editor"
                     class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"

@@ -93,7 +93,10 @@ it('leaves media out of the paragraphs', function () {
 
 it('survives a document it cannot read', function () {
     expect(PostContent::parse('not json'))
-        ->toBe(['text' => '', 'paragraphs' => [], 'images' => [], 'video' => null, 'poll' => null]);
+        ->toBe([
+            'text' => '', 'paragraphs' => [], 'background' => '',
+            'images' => [], 'video' => null, 'poll' => null,
+        ]);
 });
 
 it('leaves a short post alone', function () {
@@ -159,4 +162,14 @@ it('gives a post with no JSON something for a row to draw', function () {
         [['text' => 'first line', 'link' => '']],
         [['text' => 'second line', 'link' => '']],
     ]);
+});
+
+it('reads the colour a post was written on', function () {
+    $json = json_encode(['background' => 'sunset', 'blocks' => [paragraph([['text' => 'Big news']])]]);
+
+    expect(PostContent::parse($json)['background'])->toBe('sunset');
+});
+
+it('says so when a post was written on nothing', function () {
+    expect(PostContent::parse(document([paragraph([['text' => 'plain']])]))['background'])->toBe('');
 });

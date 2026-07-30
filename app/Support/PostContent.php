@@ -17,18 +17,26 @@ class PostContent
 {
     /**
      * @return array{text: string, paragraphs: list<list<array{text: string, link: string}>>,
-     *               images: list<array<string, string>>,
+     *               background: string, images: list<array<string, string>>,
      *               video: ?array<string, string>, poll: ?array<string, mixed>}
      */
     public static function parse(string $json): array
     {
         $document = json_decode($json, true);
 
-        $out = ['text' => '', 'paragraphs' => [], 'images' => [], 'video' => null, 'poll' => null];
+        $out = [
+            'text' => '', 'paragraphs' => [], 'background' => '',
+            'images' => [], 'video' => null, 'poll' => null,
+        ];
 
         if (! is_array($document) || ! is_array($document['blocks'] ?? null)) {
             return $out;
         }
+
+        // A property of the document, not of any block in it — which is why it
+        // sits at the root rather than on the first paragraph.
+        $background = $document['background'] ?? '';
+        $out['background'] = is_string($background) ? $background : '';
 
         $paragraphs = [];
 
