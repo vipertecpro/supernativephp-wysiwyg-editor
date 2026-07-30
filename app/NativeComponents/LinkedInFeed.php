@@ -43,9 +43,6 @@ class LinkedInFeed extends NativeComponent
     /** When the post goes out, if the writer scheduled it. */
     public string $scheduledFor = '';
 
-    /** Which "+" tile was tapped last, for the demo. */
-    public string $lastTool = '';
-
     /**
      * Posts the reader has opened out with "…see more".
      *
@@ -221,6 +218,7 @@ class LinkedInFeed extends NativeComponent
                     'icon' => 'clock',
                     'placement' => 'header',
                     'style' => 'icon',
+                    'value' => $this->scheduledFor,
                     'sheet' => 'schedule',
                 ],
             ],
@@ -230,16 +228,21 @@ class LinkedInFeed extends NativeComponent
             //  presents them, then tells us what was picked.
             // ────────────────────────────────────────────────────────────
             'sheets' => [
+                // The real grid also offers Event, Celebrate, Job and
+                // Services. They are not editor features and this demo has no
+                // Event composer to open — and a tile that reports a tap
+                // nobody acts on is a dead control, which is exactly what an
+                // app integrating this plugin must not end up shipping.
+                //
+                // Add them back the moment you have a screen behind them: the
+                // editor draws whatever tiles you declare and tells you which
+                // was picked.
                 'compose' => [
                     'style' => 'grid',
                     'options' => [
                         ['id' => 'media', 'label' => 'Media', 'icon' => 'image'],
-                        ['id' => 'event', 'label' => 'Event', 'icon' => 'calendar'],
-                        ['id' => 'celebrate', 'label' => 'Celebrate', 'icon' => 'star'],
-                        ['id' => 'job', 'label' => 'Job', 'icon' => 'briefcase'],
                         ['id' => 'poll', 'label' => 'Poll', 'icon' => 'poll'],
                         ['id' => 'document', 'label' => 'Document', 'icon' => 'document'],
-                        ['id' => 'services', 'label' => 'Services', 'icon' => 'people'],
                     ],
                 ],
                 'audience' => [
@@ -317,22 +320,26 @@ class LinkedInFeed extends NativeComponent
         WysiwygEditor::setAccessory('audience', $chosen['label'], $chosen['label']);
     }
 
+    /**
+     * A real client keeps the chosen time and sends it with the post. The
+     * button says WHEN once it has one, so the choice is not invisible.
+     */
     protected function chooseSchedule(string $option): void
     {
         $chosen = collect(self::SCHEDULES)->firstWhere('id', $option);
 
-        // A real client would keep the chosen time and send it with the post.
-        // The clock is an icon, so there is no label to write back to — the
-        // choice shows up when the post is published.
         $this->scheduledFor = $chosen === null || $option === 'now' ? '' : $chosen['label'];
+
+        WysiwygEditor::setAccessory('schedule', 'Schedule', $this->scheduledFor);
     }
 
     /**
      * A tile in the "+" grid.
      *
-     * Media and Poll are things the EDITOR can do, so they are asked for as
-     * tools. The rest are LinkedIn features an app would build itself — the
-     * editor drew the tile and told us, which is as far as its job goes.
+     * Media and Document ask the HOST to pick a file, because the editor
+     * ships no picker. Poll is something the editor can do itself, so it is
+     * asked for by name. Every tile offered here does one or the other —
+     * see the grid above for why nothing else is offered.
      */
     protected function composeOption(string $option): void
     {
@@ -340,7 +347,7 @@ class LinkedInFeed extends NativeComponent
             'media' => $this->onMediaRequested('image'),
             'document' => $this->onMediaRequested('file'),
             'poll' => WysiwygEditor::insertTool('poll'),
-            default => $this->lastTool = $option,
+            default => null,
         };
     }
 

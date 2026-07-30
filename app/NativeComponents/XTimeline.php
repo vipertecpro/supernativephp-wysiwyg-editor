@@ -74,6 +74,22 @@ class XTimeline extends NativeComponent
     ];
 
     /**
+     * When to publish.
+     *
+     * A real client opens a date and a time picker here. The editor draws the
+     * options it is given, so a demo offers the handful that matter and a real
+     * app would report the tap and present its own picker instead.
+     *
+     * @var list<array<string, string>>
+     */
+    protected const SCHEDULES = [
+        ['id' => 'now', 'label' => 'Post now', 'icon' => 'clock'],
+        ['id' => 'hour', 'label' => 'In an hour', 'icon' => 'clock'],
+        ['id' => 'morning', 'label' => 'Tomorrow, 9:00 AM', 'icon' => 'calendar'],
+        ['id' => 'evening', 'label' => 'Tomorrow, 6:00 PM', 'icon' => 'calendar'],
+    ];
+
+    /**
      * Who may reply to it.
      *
      * @var list<array<string, string>>
@@ -91,8 +107,8 @@ class XTimeline extends NativeComponent
      */
     public array $draft = [];
 
-    /** Which of our own toolbar buttons was tapped last, for the demo. */
-    public string $lastTool = '';
+    /** When the post goes out, if the writer scheduled it. */
+    public string $scheduledFor = '';
 
     /**
      * Which timeline is showing.
@@ -277,7 +293,12 @@ class XTimeline extends NativeComponent
     #[On(ToolTapped::class)]
     public function onToolTapped(string $tool): void
     {
-        $this->lastTool = $tool;
+        // A GIF is a picture as far as the editor is concerned: the app picks
+        // it, the editor places it. Schedule opens a sheet instead and never
+        // reaches here.
+        if ($tool === 'gif') {
+            $this->onMediaRequested('image');
+        }
     }
 
     /**
@@ -325,8 +346,22 @@ class XTimeline extends NativeComponent
         match ($sheet) {
             'audience' => $this->chooseFrom(self::AUDIENCES, $option, 'audience'),
             'reply' => $this->chooseFrom(self::REPLIERS, $option, 'reply'),
+            'schedule' => $this->chooseSchedule($option),
             default => null,
         };
+    }
+
+    /**
+     * A real client keeps the chosen time and sends it with the post. The
+     * button says WHEN once it has one, so the choice is not invisible.
+     */
+    protected function chooseSchedule(string $option): void
+    {
+        $chosen = collect(self::SCHEDULES)->firstWhere('id', $option);
+
+        $this->scheduledFor = $chosen === null || $option === 'now' ? '' : $chosen['label'];
+
+        WysiwygEditor::setAccessory('schedule', 'Schedule', $this->scheduledFor);
     }
 
     /**
@@ -373,9 +408,19 @@ class XTimeline extends NativeComponent
             'toolbar' => ['image', 'camera', 'video', 'poll'],
             // Buttons the APP owns. The editor draws them and reports the tap;
             // what a GIF picker or a scheduler does is our business.
+            // Buttons the APP owns. The editor draws them and reports the
+            // tap — but a button that reports a tap nobody acts on is a dead
+            // control, so both of these do something you can see.
             'customTools' => [
+                // A GIF is a picture as far as the editor is concerned — the
+                // app picks it, the editor places it — but it needs its OWN
+                // glyph, or the bar shows the photo icon twice.
                 ['id' => 'gif', 'icon' => 'embed', 'label' => 'GIF'],
-                ['id' => 'schedule', 'icon' => 'orderedList', 'label' => 'Schedule'],
+                // Schedule lives in the header instead, where a control can
+                // carry a value: X puts its clock on the bottom bar, but a
+                // bar button cannot show the time you picked, and a schedule
+                // button that looks identical after you use it is a control
+                // you cannot tell you have used.
             ],
             // The author, beside what they are writing.
             'avatar' => 'https://i.pravatar.cc/150?u=you',
@@ -391,6 +436,15 @@ class XTimeline extends NativeComponent
                     'label' => $this->audience,
                     'placement' => 'header',
                     'sheet' => 'audience',
+                ],
+                [
+                    'id' => 'schedule',
+                    'label' => 'Schedule',
+                    'icon' => 'clock',
+                    'placement' => 'header',
+                    'style' => 'icon',
+                    'value' => $this->scheduledFor,
+                    'sheet' => 'schedule',
                 ],
                 ['id' => 'tag', 'label' => 'Tag people', 'icon' => 'people'],
                 ['id' => 'location', 'label' => 'Add location', 'icon' => 'link', 'value' => $this->location],
@@ -413,6 +467,10 @@ class XTimeline extends NativeComponent
                     'options' => array_map(fn (array $row) => $row + [
                         'selected' => $row['label'] === $this->replies,
                     ], self::REPLIERS),
+                ],
+                'schedule' => [
+                    'title' => 'Schedule post',
+                    'options' => self::SCHEDULES,
                 ],
             ],
             'maxLength' => self::LIMIT,
