@@ -72,6 +72,22 @@
                 </row>
 
                 <row
+                    a11y-label="Notion"
+                    a11y-hint="Block-based writing with a slash command menu"
+                    class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"
+                    @press="openNotion"
+                >
+                    <column class="w-[44] h-[44] rounded-xl items-center justify-center bg-theme-surface-variant">
+                        <icon name="list.bullet" :size="22" class="text-theme-primary" />
+                    </column>
+                    <column class="flex-1 gap-[2]">
+                        <text class="text-base font-semibold text-theme-on-surface">Notion · pages</text>
+                        <text class="text-xs text-theme-on-surface-variant">Slash commands · to-dos · your own commands</text>
+                    </column>
+                    <icon name="chevron.right" :size="16" class="text-theme-on-surface-variant" />
+                </row>
+
+                <row
                     a11y-label="Notes"
                     a11y-hint="A real notes app backed by the full editor"
                     class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"
