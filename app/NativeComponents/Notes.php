@@ -7,6 +7,7 @@ use Native\Mobile\Attributes\On;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\NativeComponent;
 use Vipertecpro\WysiwygEditor\Events\ContentSaved;
+use Vipertecpro\WysiwygEditor\Events\SuggestionRequested;
 use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
 /**
@@ -26,7 +27,58 @@ class Notes extends NativeComponent
             'typography' => ['fontSize' => 20],
             'spacing' => 'roomy',
             'placeholder' => 'Start with a title — the first line names the note…',
+            // A slash is a trigger like any other; what makes it a COMMAND is
+            // that the rows we answer with name a tool.
+            'triggers' => ['/' => 'command'],
         ];
+    }
+
+    /**
+     * The commands `/` offers.
+     *
+     * ────────────────────────────────────────────────────────────────────
+     *  These are OURS, not the editor's.
+     * ────────────────────────────────────────────────────────────────────
+     *
+     * The editor supplies the mechanism and never the list: it spots the
+     * slash, asks what matches, and runs whichever tool the chosen row names.
+     * Which commands a notes app offers is the app's decision.
+     *
+     * @var list<array<string, string>>
+     */
+    protected const COMMANDS = [
+        ['id' => 'h1', 'label' => 'Heading 1', 'icon' => 'h1', 'tool' => 'h1'],
+        ['id' => 'h2', 'label' => 'Heading 2', 'icon' => 'h2', 'tool' => 'h2'],
+        ['id' => 'todo', 'label' => 'To-do list', 'icon' => 'checklist', 'tool' => 'checklist'],
+        ['id' => 'bullet', 'label' => 'Bulleted list', 'icon' => 'bulletList', 'tool' => 'bulletList'],
+        ['id' => 'number', 'label' => 'Numbered list', 'icon' => 'orderedList', 'tool' => 'orderedList'],
+        ['id' => 'quote', 'label' => 'Quote', 'icon' => 'blockquote', 'tool' => 'blockquote'],
+        ['id' => 'divider', 'label' => 'Divider', 'icon' => 'divider', 'tool' => 'divider'],
+        ['id' => 'image', 'label' => 'Image', 'icon' => 'image', 'tool' => 'image'],
+    ];
+
+    /**
+     * The user typed `/` and is writing after it.
+     *
+     * Fires on every keystroke, so this answers from memory. A real app with a
+     * long command list would cap it the same way.
+     */
+    #[On(SuggestionRequested::class)]
+    public function onSuggestionRequested(string $kind, string $query = ''): void
+    {
+        if ($kind !== 'command') {
+            return;
+        }
+
+        $needle = mb_strtolower(trim($query));
+
+        $matches = array_values(array_filter(
+            self::COMMANDS,
+            fn (array $command) => $needle === ''
+                || str_contains(mb_strtolower($command['label']), $needle),
+        ));
+
+        WysiwygEditor::suggestions($query, array_slice($matches, 0, 6));
     }
 
     public function newNote(): void
