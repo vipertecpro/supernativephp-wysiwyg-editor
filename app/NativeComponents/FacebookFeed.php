@@ -31,6 +31,9 @@ class FacebookFeed extends NativeComponent
 
     public const HANDLE = '@you';
 
+    /** Which demo a post belongs to; the three share a table. */
+    public const SURFACE = 'facebook';
+
     /** Who a post goes out to. */
     public string $audience = 'Friends';
 
@@ -81,7 +84,7 @@ class FacebookFeed extends NativeComponent
         $this->actionsFor = null;
         $this->confirmingDelete = false;
 
-        $post = Post::find($id);
+        $post = Post::query()->onSurface(self::SURFACE)->find($id);
 
         if ($post && $post->author_handle === self::HANDLE) {
             // From the JSON: HTML cannot carry a local file path, and a post
@@ -114,7 +117,7 @@ class FacebookFeed extends NativeComponent
     public function delete(int $id): void
     {
         // A real client would DELETE against its API here.
-        Post::whereKey($id)->where('author_handle', self::HANDLE)->delete();
+        Post::whereKey($id)->onSurface(self::SURFACE)->delete();
 
         $this->actionsFor = null;
         $this->confirmingDelete = false;
@@ -199,6 +202,7 @@ class FacebookFeed extends NativeComponent
         // the only form that carries the background and the local file paths.
         if ($target === 'new') {
             Post::create([
+                'surface' => self::SURFACE,
                 'author_name' => self::AUTHOR,
                 'author_handle' => self::HANDLE,
                 'body_html' => $html,
@@ -210,7 +214,7 @@ class FacebookFeed extends NativeComponent
         }
 
         Post::whereKey((int) $target)
-            ->where('author_handle', self::HANDLE)
+            ->onSurface(self::SURFACE)
             ->update(['body_html' => $html, 'body_text' => $text, 'body_json' => $json]);
     }
 
@@ -222,7 +226,7 @@ class FacebookFeed extends NativeComponent
     public function render(): Element
     {
         return $this->view('facebook-feed', [
-            'posts' => Post::query()->latest('created_at')->latest('id')->get(),
+            'posts' => Post::query()->onSurface(self::SURFACE)->latest('created_at')->latest('id')->get(),
             'mine' => self::HANDLE,
             'audience' => $this->audience,
             'actionsFor' => $this->actionsFor,

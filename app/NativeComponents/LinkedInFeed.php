@@ -32,6 +32,9 @@ class LinkedInFeed extends NativeComponent
 
     public const HANDLE = '@you';
 
+    /** Which demo a post belongs to; the three share a table. */
+    public const SURFACE = 'linkedin';
+
     /** LinkedIn's allowance, an order of magnitude past a short post. */
     public const LIMIT = 3000;
 
@@ -95,7 +98,7 @@ class LinkedInFeed extends NativeComponent
         $this->actionsFor = null;
         $this->confirmingDelete = false;
 
-        $post = Post::find($id);
+        $post = Post::query()->onSurface(self::SURFACE)->find($id);
 
         if ($post && $post->author_handle === self::HANDLE) {
             // From the JSON, not the HTML: HTML cannot carry a local file
@@ -108,7 +111,7 @@ class LinkedInFeed extends NativeComponent
     public function delete(int $id): void
     {
         // A real client would DELETE against its API here.
-        Post::whereKey($id)->where('author_handle', self::HANDLE)->delete();
+        Post::whereKey($id)->onSurface(self::SURFACE)->delete();
 
         $this->actionsFor = null;
         $this->confirmingDelete = false;
@@ -359,6 +362,7 @@ class LinkedInFeed extends NativeComponent
         // cannot carry a local file path or a poll's option ids.
         if ($target === 'new') {
             Post::create([
+                'surface' => self::SURFACE,
                 'author_name' => self::AUTHOR,
                 'author_handle' => self::HANDLE,
                 'body_html' => $html,
@@ -371,7 +375,7 @@ class LinkedInFeed extends NativeComponent
 
         // An edit only ever touches your own row.
         Post::whereKey((int) $target)
-            ->where('author_handle', self::HANDLE)
+            ->onSurface(self::SURFACE)
             ->update(['body_html' => $html, 'body_text' => $text, 'body_json' => $json]);
     }
 
@@ -383,7 +387,7 @@ class LinkedInFeed extends NativeComponent
     public function render(): Element
     {
         return $this->view('linkedin-feed', [
-            'posts' => Post::query()->latest('created_at')->latest('id')->get(),
+            'posts' => Post::query()->onSurface(self::SURFACE)->latest('created_at')->latest('id')->get(),
             'audience' => $this->audience,
             'mine' => self::HANDLE,
             'expanded' => $this->expanded,

@@ -14,14 +14,18 @@
 
     {{-- Top bar: your face, the wordmark, and almost nothing else. --}}
     <row class="w-full px-4 py-2 items-center justify-between">
+        {{-- Your own face carries the way back to the gallery: X has no back
+             button, and adding one it does not have would show. --}}
         <image
+            @navigate.back
+            a11y-label="Back to examples"
             src="https://i.pravatar.cc/150?u=you"
             alt="Your profile"
             class="w-[32] h-[32] rounded-full"
             :fit="2"
         />
         <text class="text-[22] font-bold text-theme-on-surface">X</text>
-        <column @navigate.back a11y-label="Back" class="w-[32] h-[32] items-center justify-center">
+        <column class="w-[32] h-[32] items-center justify-center">
             <icon name="sparkles" :size="20" class="text-theme-on-surface" />
         </column>
     </row>
@@ -34,10 +38,15 @@
                 a11y-label="{{ $item['label'] }}"
                 class="flex-1 items-center pt-3"
             >
-                <text class="text-[15] {{ $tab === $item['id'] ? 'font-bold text-theme-on-surface' : 'text-theme-on-surface-variant' }}">
-                    {{ $item['label'] }}
-                </text>
-                <column class="h-[3] w-[56] mt-2 rounded-full {{ $tab === $item['id'] ? 'bg-theme-primary' : '' }}" />
+                {{-- The inner column hugs the word, so the rule under it is as
+                     wide as the word rather than a guess that fits one of the
+                     two labels and not the other. --}}
+                <column class="items-center">
+                    <text class="text-[15] {{ $tab === $item['id'] ? 'font-bold text-theme-on-surface' : 'text-theme-on-surface-variant' }}">
+                        {{ $item['label'] }}
+                    </text>
+                    <column class="h-[3] w-full mt-2 rounded-full {{ $tab === $item['id'] ? 'bg-theme-primary' : '' }}" />
+                </column>
             </column>
         @endforeach
     </row>

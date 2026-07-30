@@ -43,6 +43,9 @@ class XTimeline extends NativeComponent
 
     public const HANDLE = '@you';
 
+    /** Which demo a post belongs to; the three share a table. */
+    public const SURFACE = 'x';
+
     /** 280, the limit the ring counts toward. */
     public const LIMIT = 280;
 
@@ -117,7 +120,7 @@ class XTimeline extends NativeComponent
         $this->actionsFor = null;
         $this->confirmingDelete = false;
 
-        $post = Post::find($id);
+        $post = Post::query()->onSurface(self::SURFACE)->find($id);
 
         if ($post && $post->author_handle === self::HANDLE) {
             // Re-open from the JSON, not the HTML. HTML cannot carry a local
@@ -164,7 +167,7 @@ class XTimeline extends NativeComponent
         // leaves the files: they are small, and an attachment that outlives
         // its post is clutter, while deleting one still referenced elsewhere
         // breaks a post that was fine.
-        Post::whereKey($id)->where('author_handle', self::HANDLE)->delete();
+        Post::whereKey($id)->onSurface(self::SURFACE)->delete();
 
         $this->actionsFor = null;
         $this->confirmingDelete = false;
@@ -216,6 +219,7 @@ class XTimeline extends NativeComponent
 
         if ($target === 'new') {
             Post::create([
+                'surface' => self::SURFACE,
                 'author_name' => self::AUTHOR,
                 'author_handle' => self::HANDLE,
                 'body_html' => $html,
@@ -230,7 +234,7 @@ class XTimeline extends NativeComponent
         // handed is a habit worth not forming — an edit only ever touches
         // your own row.
         Post::whereKey((int) $target)
-            ->where('author_handle', self::HANDLE)
+            ->onSurface(self::SURFACE)
             ->update(['body_html' => $html, 'body_text' => $text, 'body_json' => $json]);
     }
 
@@ -433,7 +437,7 @@ class XTimeline extends NativeComponent
             // nothing — so it is empty until there is somebody to follow.
             'posts' => $this->tab === 'following'
                 ? Post::query()->whereRaw('1 = 0')->get()
-                : Post::query()->latest('created_at')->latest('id')->get(),
+                : Post::query()->onSurface(self::SURFACE)->latest('created_at')->latest('id')->get(),
             'mine' => self::HANDLE,
             'tab' => $this->tab,
         ]);

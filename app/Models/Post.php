@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\PostContent;
 use Database\Factories\PostFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,9 +22,21 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
+        'surface',
         'author_name', 'author_handle', 'body_html', 'body_text', 'body_json',
         'replies', 'reposts', 'likes',
     ];
+
+    /**
+     * Only the posts belonging to one demo.
+     *
+     * The three feeds share a table, and they are meant to be three apps — a
+     * post written on a colour in one would turn up in another as plain text.
+     */
+    public function scopeOnSurface(Builder $query, string $surface): Builder
+    {
+        return $query->where('surface', $surface);
+    }
 
     /**
      * The parts a timeline row draws: words, photos, video, poll.

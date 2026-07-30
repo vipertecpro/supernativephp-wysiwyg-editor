@@ -12,9 +12,19 @@
 --}}
 <column class="w-full h-full bg-theme-background safe-area">
 
-    {{-- Wordmark and the two circles, which is all Facebook keeps up here. --}}
+    {{--
+        Wordmark and the two circles, which is all Facebook keeps up here.
+
+        The real app has no back button, because it is not somewhere you
+        arrive from. This one IS — so the wordmark carries the way out rather
+        than adding a chevron the app does not have.
+    --}}
     <row class="w-full items-center justify-between px-4 py-2">
-        <text class="text-[24] font-bold text-theme-primary">facebook</text>
+        <text
+            @navigate.back
+            a11y-label="Back to examples"
+            class="text-[24] font-bold text-theme-primary"
+        >facebook</text>
         <row class="items-center gap-2">
             <column class="w-[36] h-[36] rounded-full bg-theme-surface-variant items-center justify-center">
                 <icon name="magnifyingglass" :size="18" class="text-theme-on-surface" />

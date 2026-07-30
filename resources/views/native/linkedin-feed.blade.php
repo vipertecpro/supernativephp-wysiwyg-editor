@@ -11,9 +11,17 @@
 --}}
 <column class="w-full h-full bg-theme-background safe-area">
 
-    {{-- Search, not a title: the feed is somewhere you look things up. --}}
+    {{--
+        Search, not a title: the feed is somewhere you look things up.
+
+        The real app has no back button, because it is not somewhere you
+        arrive from. This one IS — so your own face carries the way out rather
+        than adding a chevron the app does not have.
+    --}}
     <row class="w-full items-center gap-3 px-3 py-2">
         <image
+            @navigate.back
+            a11y-label="Back to examples"
             src="https://i.pravatar.cc/150?u=you"
             alt="Your profile"
             class="w-[32] h-[32] rounded-full"
@@ -113,9 +121,10 @@
                         <divider class="w-full mt-3" />
 
                         {{--
-                            Icons with counts, not icons with labels: the count
-                            is the information, and Like/Comment/Repost/Send are
-                            recognisable without being spelled out.
+                            Labelled, not counted. LinkedIn shows counts on a
+                            post that HAS engagement and the four named actions
+                            on one that does not — and every post here is one
+                            you just wrote.
                         --}}
                         <row class="w-full items-center px-2 py-1">
                             <row class="items-center gap-2 px-3 py-2">
