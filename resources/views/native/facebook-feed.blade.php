@@ -90,16 +90,44 @@
                     </row>
 
                     @if ($card && $content['text'] !== '')
-                        {{-- Written ON a colour: large, centred, edge to edge.
-                             The post is a card, so it stops being a paragraph. --}}
-                        <column
-                            class="w-full mt-3 items-center justify-center px-8 py-16 bg-[{{ $card['from'] }}]"
-                        >
-                            {{-- The colour has to be a class: the renderer has
-                                 no style attribute to read. --}}
-                            <text
-                                class="text-center text-[26] font-bold text-[{{ $card['textColor'] ?? '#FFFFFF' }}]"
-                            >{{ $content['text'] }}</text>
+                        {{--
+                            Written ON a colour: large, centred, edge to edge.
+                            The post is a card, so it stops being a paragraph.
+
+                            The renderer has no gradient, so the card is built
+                            from thin strips of interpolated colour with the
+                            words laid over them. A single flat fill read
+                            noticeably unlike the composer, which draws the
+                            real thing.
+                        --}}
+                        @php($ramp = \App\Support\Gradient::steps($card['from'], $card['to'] ?? ''))
+                        @php($half = intdiv(count($ramp), 2))
+
+                        {{--
+                            An absolutely positioned child is clipped to its
+                            parent AND ignores the alignment classes, so the
+                            words cannot simply be laid over the strips. They
+                            live in a band of their own instead, taking the
+                            colour the ramp has at that point — flat across 60
+                            points, between two shades close enough that the
+                            seam does not read.
+                        --}}
+                        <column class="w-full mt-3">
+                            @foreach (array_slice($ramp, 0, $half) as $shade)
+                                <column class="w-full h-[9] bg-[{{ $shade }}]" />
+                            @endforeach
+
+                            <column class="w-full h-[64] items-center justify-center px-8 bg-[{{ $ramp[$half] ?? $card['from'] }}]">
+                                {{-- The colour has to be a class: the renderer
+                                     has no style attribute to read. --}}
+                                <text
+                                    class="text-center text-[26] font-bold text-[{{ $card['textColor'] ?? '#FFFFFF' }}]"
+                                >{{ $content['text'] }}</text>
+                            </column>
+
+                            @foreach (array_slice($ramp, $half + 1) as $shade)
+                                <column class="w-full h-[9] bg-[{{ $shade }}]" />
+                            @endforeach
                         </column>
                     @else
                         @if ($content['paragraphs'] !== [])

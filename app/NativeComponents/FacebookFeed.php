@@ -131,6 +131,10 @@ class FacebookFeed extends NativeComponent
             'history' => false,
             'backgrounds' => self::BACKGROUNDS,
             'avatar' => 'https://i.pravatar.cc/150?u=you',
+            // In the header, not beside the text: the card is the writing
+            // surface, and an avatar sitting on it makes the colour look like
+            // a backdrop behind a person rather than the post itself.
+            'avatarPlacement' => 'header',
             'accessories' => [
                 [
                     'id' => 'audience',
