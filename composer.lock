@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f9dd3447d9cb4e45c5aac3b2af70428e",
+    "content-hash": "21bfe3102a21d2f05a8bf92045dd31b1",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6744,18 +6744,21 @@
         },
         {
             "name": "vipertecpro/wysiwyg-editor",
-            "version": "dev-android-implementation",
+            "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "../wysiwyg-editor",
-                "reference": "3d27d1c116ff0990712b7f7f3614fed3e580fa1b"
+                "reference": "a306dbdb5e0d66bddb2e6531b6c445e9ce099045"
             },
             "require": {
                 "nativephp/mobile": "^3.0|^4.0",
                 "php": "^8.4"
             },
             "require-dev": {
-                "pestphp/pest": "^3.0"
+                "pestphp/pest": "^3.0|^4.0"
+            },
+            "suggest": {
+                "nativephp/native-ui": "Lets the editor adopt your application theme automatically (colours and font)."
             },
             "type": "nativephp-plugin",
             "extra": {

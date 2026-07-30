@@ -58,11 +58,11 @@
         "php": "^8.3",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
-        "nativephp/mobile": "~4.0.0@RC",
-        "nativephp/native-ui": "0.1.0",
-        "vipertecpro/wysiwyg-editor": "*@dev",
+        "nativephp/mobile": "4.0.0-rc.1",
         "nativephp/mobile-camera": "^1.0",
-        "vipertecpro/image-cropper": "^1.0"
+        "nativephp/native-ui": "0.1.0",
+        "vipertecpro/image-cropper": "^1.0",
+        "vipertecpro/wysiwyg-editor": "*@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
