@@ -94,3 +94,56 @@ it('survives a document it cannot read', function () {
     expect(PostContent::parse('not json'))
         ->toBe(['text' => '', 'paragraphs' => [], 'images' => [], 'video' => null, 'poll' => null]);
 });
+
+it('leaves a short post alone', function () {
+    $content = PostContent::parse(document([paragraph([['text' => 'short enough']])]));
+    $clipped = PostContent::clip($content['paragraphs']);
+
+    expect($clipped['clipped'])->toBeFalse()
+        ->and($clipped['paragraphs'])->toBe($content['paragraphs']);
+});
+
+it('clips a long post on a word boundary', function () {
+    $content = PostContent::parse(document([paragraph([['text' => str_repeat('lorem ipsum ', 60)]])]));
+    $clipped = PostContent::clip($content['paragraphs'], 30);
+
+    $text = implode('', array_column($clipped['paragraphs'][0], 'text'));
+
+    expect($clipped['clipped'])->toBeTrue()
+        // Never mid-word, and never longer than asked for.
+        ->and($text)->toBe('lorem ipsum lorem ipsum lorem')
+        ->and(mb_strlen($text))->toBeLessThanOrEqual(30);
+});
+
+it('keeps a mention that survives the clip styled as a mention', function () {
+    $content = PostContent::parse(document([
+        paragraph([
+            ['text' => 'Congratulations '],
+            ['text' => '@Ada Lovelace', 'marks' => ['link' => 'mention:u1']],
+            ['text' => ' on the new role, richly deserved after all these years'],
+        ]),
+    ]));
+
+    $clipped = PostContent::clip($content['paragraphs'], 40);
+
+    expect($clipped['clipped'])->toBeTrue()
+        ->and($clipped['paragraphs'][0][1])
+        ->toBe(['text' => '@Ada Lovelace', 'link' => 'mention:u1']);
+});
+
+it('drops the paragraphs past the clip rather than showing empty ones', function () {
+    $content = PostContent::parse(document([
+        paragraph([['text' => str_repeat('a', 50)]]),
+        paragraph([['text' => 'never seen']]),
+    ]));
+
+    expect(PostContent::clip($content['paragraphs'], 20)['paragraphs'])->toHaveCount(1);
+});
+
+it('clips one long word rather than returning nothing', function () {
+    // No space to back up to, so the cut has to land somewhere.
+    $content = PostContent::parse(document([paragraph([['text' => str_repeat('x', 400)]])]));
+    $clipped = PostContent::clip($content['paragraphs'], 20);
+
+    expect($clipped['paragraphs'][0][0]['text'])->toBe(str_repeat('x', 20));
+});

@@ -7,8 +7,8 @@ use App\Models\Post;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\NativeComponent;
-use Vipertecpro\WysiwygEditor\Events\AccessoryTapped;
 use Vipertecpro\WysiwygEditor\Events\ContentSaved;
+use Vipertecpro\WysiwygEditor\Events\SheetOptionPicked;
 use Vipertecpro\WysiwygEditor\Events\SuggestionRequested;
 use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
@@ -36,6 +36,83 @@ class LinkedInFeed extends NativeComponent
     public const LIMIT = 3000;
 
     public string $audience = 'Anyone';
+
+    /** When the post goes out, if the writer scheduled it. */
+    public string $scheduledFor = '';
+
+    /** Which "+" tile was tapped last, for the demo. */
+    public string $lastTool = '';
+
+    /**
+     * Posts the reader has opened out with "…see more".
+     *
+     * A long post is clipped in the feed, the way LinkedIn clips it: the row
+     * is a summary, and reading the whole thing is a decision. Kept per-post
+     * so opening one does not open the rest.
+     *
+     * @var list<int>
+     */
+    public array $expanded = [];
+
+    /** Show the rest of a clipped post. */
+    public function expand(int $id): void
+    {
+        if (! in_array($id, $this->expanded, true)) {
+            $this->expanded[] = $id;
+        }
+    }
+
+    /** The post whose `···` menu is open, if any. */
+    public ?int $actionsFor = null;
+
+    /** True once Delete is tapped: the same sheet asks to confirm. */
+    public bool $confirmingDelete = false;
+
+    public function showActions(int $id): void
+    {
+        $this->actionsFor = $id;
+    }
+
+    public function closeActions(): void
+    {
+        $this->actionsFor = null;
+        $this->confirmingDelete = false;
+    }
+
+    public function confirmDelete(): void
+    {
+        $this->confirmingDelete = true;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->confirmingDelete = false;
+    }
+
+    /** Re-open an existing post in the same editor, content intact. */
+    public function edit(int $id): void
+    {
+        $this->actionsFor = null;
+        $this->confirmingDelete = false;
+
+        $post = Post::find($id);
+
+        if ($post && $post->author_handle === self::HANDLE) {
+            // From the JSON, not the HTML: HTML cannot carry a local file
+            // path, so a post whose photos never uploaded would come back
+            // without them.
+            $this->openEditor($post->body_json ?: $post->body_html, (string) $post->id);
+        }
+    }
+
+    public function delete(int $id): void
+    {
+        // A real client would DELETE against its API here.
+        Post::whereKey($id)->where('author_handle', self::HANDLE)->delete();
+
+        $this->actionsFor = null;
+        $this->confirmingDelete = false;
+    }
 
     /**
      * Who this account can mention.
@@ -67,16 +144,55 @@ class LinkedInFeed extends NativeComponent
         ['id' => 't4', 'label' => 'opensource', 'detail' => '892,110 followers'],
     ];
 
+    /**
+     * Who may see a post, and what each choice means.
+     *
+     * @var list<array<string, string>>
+     */
+    protected const AUDIENCES = [
+        ['id' => 'anyone', 'label' => 'Anyone', 'detail' => 'Anyone on or off the network', 'icon' => 'globe'],
+        ['id' => 'connections', 'label' => 'Connections only', 'icon' => 'people'],
+        ['id' => 'group', 'label' => 'Group', 'icon' => 'people'],
+    ];
+
+    /**
+     * When to publish.
+     *
+     * A real client opens a date and a time picker here. The editor draws the
+     * options it is given, so a demo offers the handful that matter and a real
+     * app would report the tap and present its own picker instead.
+     *
+     * @var list<array<string, string>>
+     */
+    protected const SCHEDULES = [
+        ['id' => 'now', 'label' => 'Post now', 'icon' => 'clock'],
+        ['id' => 'morning', 'label' => 'Tomorrow, 9:00 AM', 'icon' => 'calendar'],
+        ['id' => 'evening', 'label' => 'Tomorrow, 5:00 PM', 'icon' => 'calendar'],
+        ['id' => 'week', 'label' => 'Next Monday, 9:00 AM', 'icon' => 'calendar'],
+    ];
+
     public function compose(): void
     {
-        WysiwygEditor::open('', [
-            'placeholder' => 'What do you want to talk about?',
-            // The writing tools, which the short-post composer had none of.
-            'toolbar' => ['bold', 'italic', 'bulletList', 'orderedList', 'link', 'image', 'video', 'file', 'poll'],
+        $this->openEditor('', 'new');
+    }
+
+    protected function openEditor(string $content, string $target): void
+    {
+        WysiwygEditor::open($content, [
+            'placeholder' => 'Share your thoughts...',
+            // Two buttons, parked in the corner. LinkedIn's composer has no
+            // formatting bar at all: a photo shortcut and a "+" onto
+            // everything else.
+            'toolbar' => ['image'],
+            'toolbarAlign' => 'trailing',
+            'history' => false,
+            'customTools' => [
+                ['id' => 'more', 'icon' => 'plus', 'label' => 'More', 'sheet' => 'compose'],
+            ],
             'maxLength' => self::LIMIT,
-            // Three thousand characters is not something to count down to; a
-            // quiet readout is right and a ring would be absurd.
-            'counts' => ['characters', 'words', 'readingTime'],
+            // A 3000-character allowance is not something to count down to,
+            // and LinkedIn shows no counter at all until you are near it.
+            'counts' => [],
             'saveStyle' => 'filled',
             'cancelStyle' => 'icon',
             'cancelMode' => 'discard',
@@ -85,11 +201,57 @@ class LinkedInFeed extends NativeComponent
             'mediaLayout' => 'blocks',
             'spacing' => 'roomy',
             'avatar' => 'https://i.pravatar.cc/150?u=you',
+            // Beside the audience picker, not beside the text — so the
+            // writing runs the full width.
+            'avatarPlacement' => 'header',
             'accessories' => [
-                ['id' => 'audience', 'label' => 'Post to', 'value' => $this->audience],
+                [
+                    'id' => 'audience',
+                    'label' => 'Anyone',
+                    'value' => $this->audience,
+                    'placement' => 'header',
+                    'sheet' => 'audience',
+                ],
+                [
+                    'id' => 'schedule',
+                    'label' => 'Schedule',
+                    'icon' => 'clock',
+                    'placement' => 'header',
+                    'style' => 'icon',
+                    'sheet' => 'schedule',
+                ],
             ],
-            'strings' => ['save' => 'Post'],
-            'id' => 'li-post',
+            // ────────────────────────────────────────────────────────────
+            //  These are OUR sheets. The editor owns its own window, so one
+            //  we drew would open behind it — we declare the options and it
+            //  presents them, then tells us what was picked.
+            // ────────────────────────────────────────────────────────────
+            'sheets' => [
+                'compose' => [
+                    'style' => 'grid',
+                    'options' => [
+                        ['id' => 'media', 'label' => 'Media', 'icon' => 'image'],
+                        ['id' => 'event', 'label' => 'Event', 'icon' => 'calendar'],
+                        ['id' => 'celebrate', 'label' => 'Celebrate', 'icon' => 'star'],
+                        ['id' => 'job', 'label' => 'Job', 'icon' => 'briefcase'],
+                        ['id' => 'poll', 'label' => 'Poll', 'icon' => 'poll'],
+                        ['id' => 'document', 'label' => 'Document', 'icon' => 'document'],
+                        ['id' => 'services', 'label' => 'Services', 'icon' => 'people'],
+                    ],
+                ],
+                'audience' => [
+                    'title' => 'Who can see your post?',
+                    'options' => array_map(fn (array $row) => $row + [
+                        'selected' => $row['label'] === $this->audience,
+                    ], self::AUDIENCES),
+                ],
+                'schedule' => [
+                    'title' => 'Schedule',
+                    'options' => self::SCHEDULES,
+                ],
+            ],
+            'strings' => ['save' => $target === 'new' ? 'Post' : 'Save'],
+            'id' => 'li-post-'.$target,
         ]);
     }
 
@@ -102,7 +264,7 @@ class LinkedInFeed extends NativeComponent
     #[On(SuggestionRequested::class)]
     public function onSuggestionRequested(string $kind, string $trigger, string $query = '', ?string $id = null): void
     {
-        if ($id !== 'li-post') {
+        if ($id === null || ! str_starts_with($id, 'li-post-')) {
             return;
         }
 
@@ -117,33 +279,100 @@ class LinkedInFeed extends NativeComponent
         WysiwygEditor::suggestions($query, array_slice($matches, 0, 5));
     }
 
-    #[On(AccessoryTapped::class)]
-    public function onAccessoryTapped(string $accessory): void
+    /**
+     * Something was chosen in one of OUR sheets.
+     *
+     * The editor presented it because it owns the screen; the options were
+     * ours and so is what they mean. Write the answer back into the control
+     * that opened it, so the user sees what they chose.
+     */
+    #[On(SheetOptionPicked::class)]
+    public function onSheetOptionPicked(string $sheet, string $option, ?string $id = null): void
     {
-        if ($accessory !== 'audience') {
+        if ($id === null || ! str_starts_with($id, 'li-post-')) {
             return;
         }
 
-        $order = ['Anyone', 'Connections only', 'Anyone + Twitter'];
-        $this->audience = $order[(array_search($this->audience, $order, true) + 1) % count($order)];
+        match ($sheet) {
+            'audience' => $this->chooseAudience($option),
+            'schedule' => $this->chooseSchedule($option),
+            'compose' => $this->composeOption($option),
+            default => null,
+        };
+    }
 
-        WysiwygEditor::setAccessory('audience', 'Post to', $this->audience);
+    protected function chooseAudience(string $option): void
+    {
+        $chosen = collect(self::AUDIENCES)->firstWhere('id', $option);
+
+        if ($chosen === null) {
+            return;
+        }
+
+        $this->audience = $chosen['label'];
+
+        WysiwygEditor::setAccessory('audience', $chosen['label'], $chosen['label']);
+    }
+
+    protected function chooseSchedule(string $option): void
+    {
+        $chosen = collect(self::SCHEDULES)->firstWhere('id', $option);
+
+        // A real client would keep the chosen time and send it with the post.
+        // The clock is an icon, so there is no label to write back to — the
+        // choice shows up when the post is published.
+        $this->scheduledFor = $chosen === null || $option === 'now' ? '' : $chosen['label'];
+    }
+
+    /**
+     * A tile in the "+" grid.
+     *
+     * Media and Poll are things the EDITOR can do, so they are asked for as
+     * tools. The rest are LinkedIn features an app would build itself — the
+     * editor drew the tile and told us, which is as far as its job goes.
+     */
+    protected function composeOption(string $option): void
+    {
+        match ($option) {
+            'media' => $this->onMediaRequested('image'),
+            'document' => $this->onMediaRequested('file'),
+            'poll' => WysiwygEditor::insertTool('poll'),
+            default => $this->lastTool = $option,
+        };
     }
 
     #[On(ContentSaved::class)]
     public function onPosted(string $html, string $text, string $json = '', ?string $id = null): void
     {
-        if ($id !== 'li-post' || trim($text) === '') {
+        if ($id === null || ! str_starts_with($id, 'li-post-') || trim($text) === '') {
             return;
         }
 
-        Post::create([
-            'author_name' => self::AUTHOR,
-            'author_handle' => self::HANDLE,
-            'body_html' => $html,
-            'body_text' => $text,
-            'body_json' => $json,
-        ]);
+        $target = substr($id, strlen('li-post-'));
+
+        // ────────────────────────────────────────────────────────────────
+        //  REPLACE THIS WITH YOUR API.
+        // ────────────────────────────────────────────────────────────────
+        //
+        // Written to SQLite ON THE DEVICE because this demo has no server.
+        // Send `json` too if the post should ever be EDITABLE again — HTML
+        // cannot carry a local file path or a poll's option ids.
+        if ($target === 'new') {
+            Post::create([
+                'author_name' => self::AUTHOR,
+                'author_handle' => self::HANDLE,
+                'body_html' => $html,
+                'body_text' => $text,
+                'body_json' => $json,
+            ]);
+
+            return;
+        }
+
+        // An edit only ever touches your own row.
+        Post::whereKey((int) $target)
+            ->where('author_handle', self::HANDLE)
+            ->update(['body_html' => $html, 'body_text' => $text, 'body_json' => $json]);
     }
 
     public function preview(string $kind, string $source, string $caption = ''): void
@@ -157,6 +386,9 @@ class LinkedInFeed extends NativeComponent
             'posts' => Post::query()->latest('created_at')->latest('id')->get(),
             'audience' => $this->audience,
             'mine' => self::HANDLE,
+            'expanded' => $this->expanded,
+            'actionsFor' => $this->actionsFor,
+            'confirmingDelete' => $this->confirmingDelete,
         ]);
     }
 }

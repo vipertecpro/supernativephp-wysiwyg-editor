@@ -26,7 +26,10 @@ class CommentBox extends NativeComponent
     {
         return [
             'preset' => 'comment',       // bold · italic · link only
-            'maxLength' => 500,          // live counter, hard cap
+            'maxLength' => 500,          // hard cap
+            // The cap decides when Save refuses; this is what asks for the
+            // live "n/500" beside it.
+            'counts' => ['characters'],
             'title' => 'Add comment',
             'placeholder' => 'Write a comment…',
         ];

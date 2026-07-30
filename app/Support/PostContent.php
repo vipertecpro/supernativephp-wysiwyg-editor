@@ -62,6 +62,88 @@ class PostContent
     }
 
     /**
+     * How much of a post a collapsed row shows before "…see more".
+     *
+     * LinkedIn clips at roughly three lines. Counting characters rather than
+     * measuring lines is an approximation, but the alternative is asking the
+     * renderer how tall the text came out, which nothing on either platform
+     * will tell a Blade view.
+     */
+    public const CLIP_LENGTH = 220;
+
+    /**
+     * Cut the paragraphs down to what a collapsed row shows.
+     *
+     * Clips on a word boundary and keeps the spans intact, so a mention that
+     * survives the cut still draws as a mention rather than as prose.
+     *
+     * @param  list<list<array{text: string, link: string}>>  $paragraphs
+     * @return array{paragraphs: list<list<array{text: string, link: string}>>, clipped: bool}
+     */
+    public static function clip(array $paragraphs, int $limit = self::CLIP_LENGTH): array
+    {
+        $total = array_sum(array_map(
+            fn (array $spans) => mb_strlen(implode('', array_column($spans, 'text'))),
+            $paragraphs,
+        ));
+
+        if ($total <= $limit) {
+            return ['paragraphs' => $paragraphs, 'clipped' => false];
+        }
+
+        $out = [];
+        $budget = $limit;
+
+        foreach ($paragraphs as $spans) {
+            $kept = [];
+
+            foreach ($spans as $span) {
+                $length = mb_strlen($span['text']);
+
+                if ($length <= $budget) {
+                    $kept[] = $span;
+                    $budget -= $length;
+
+                    continue;
+                }
+
+                $head = self::toWordBoundary(mb_substr($span['text'], 0, $budget));
+
+                if ($head !== '') {
+                    $kept[] = ['text' => $head, 'link' => $span['link']];
+                }
+
+                $budget = 0;
+
+                break;
+            }
+
+            if ($kept !== []) {
+                $out[] = $kept;
+            }
+
+            if ($budget <= 0) {
+                break;
+            }
+        }
+
+        return ['paragraphs' => $out, 'clipped' => true];
+    }
+
+    /**
+     * Back up to the last space, so the clip never lands mid-word.
+     *
+     * A cut with no space to back up to is one long word, which is left as it
+     * is — chopping it anywhere would be just as arbitrary.
+     */
+    private static function toWordBoundary(string $text): string
+    {
+        $at = mb_strrpos($text, ' ');
+
+        return $at === false ? rtrim($text) : rtrim(mb_substr($text, 0, $at));
+    }
+
+    /**
      * How a set of photos is laid out. X, Facebook and Instagram all use the
      * same shapes, so the row only has to know which one it is in.
      */
