@@ -28,16 +28,23 @@ class Post extends Model
     /**
      * The parts a timeline row draws: words, photos, video, poll.
      *
-     * @return array{text: string, images: list<array<string, string>>,
+     * @return array{text: string, paragraphs: list<list<array{text: string, link: string}>>,
+     *               images: list<array<string, string>>,
      *               video: ?array<string, string>, poll: ?array<string, mixed>}
      */
     public function content(): array
     {
         $parsed = PostContent::parse((string) $this->body_json);
 
-        // Posts seeded without JSON still have to render something.
+        // Posts seeded without JSON still have to render something — and the
+        // spans too, not just the text: a row that draws paragraphs would
+        // otherwise show an empty post rather than a plain one.
         if ($parsed['text'] === '' && $parsed['images'] === [] && ! $parsed['video'] && ! $parsed['poll']) {
-            $parsed['text'] = $this->body_text;
+            $parsed['text'] = (string) $this->body_text;
+            $parsed['paragraphs'] = array_values(array_filter(array_map(
+                fn (string $line) => $line === '' ? [] : [['text' => $line, 'link' => '']],
+                explode("\n", $parsed['text']),
+            )));
         }
 
         return $parsed;

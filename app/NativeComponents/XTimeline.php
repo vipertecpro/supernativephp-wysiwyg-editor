@@ -11,6 +11,7 @@ use Native\Mobile\Edge\NativeComponent;
 use Vipertecpro\WysiwygEditor\Events\AccessoryTapped;
 use Vipertecpro\WysiwygEditor\Events\ContentSaved;
 use Vipertecpro\WysiwygEditor\Events\DraftRequested;
+use Vipertecpro\WysiwygEditor\Events\SheetOptionPicked;
 use Vipertecpro\WysiwygEditor\Events\ToolTapped;
 use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 
@@ -56,6 +57,30 @@ class XTimeline extends NativeComponent
 
     public string $audience = 'Everyone';
 
+    /** Who may reply, chosen in the composer. */
+    public string $replies = 'Everyone';
+
+    /**
+     * Who a post goes out to.
+     *
+     * @var list<array<string, string>>
+     */
+    protected const AUDIENCES = [
+        ['id' => 'everyone', 'label' => 'Everyone', 'detail' => 'Anyone on or off X', 'icon' => 'globe'],
+        ['id' => 'circle', 'label' => 'Circle', 'detail' => 'Only the people you picked', 'icon' => 'people'],
+    ];
+
+    /**
+     * Who may reply to it.
+     *
+     * @var list<array<string, string>>
+     */
+    protected const REPLIERS = [
+        ['id' => 'everyone', 'label' => 'Everyone', 'icon' => 'globe'],
+        ['id' => 'following', 'label' => 'Accounts you follow', 'icon' => 'people'],
+        ['id' => 'mentioned', 'label' => 'Only accounts you mention', 'icon' => 'people'],
+    ];
+
     /**
      * The unsent post, if the writer backed out and kept it.
      *
@@ -65,6 +90,20 @@ class XTimeline extends NativeComponent
 
     /** Which of our own toolbar buttons was tapped last, for the demo. */
     public string $lastTool = '';
+
+    /**
+     * Which timeline is showing.
+     *
+     * X leads with two: an algorithmic one and the accounts you chose. A demo
+     * account follows nobody, so Following is honestly empty rather than
+     * showing the same posts twice under a different name.
+     */
+    public string $tab = 'forYou';
+
+    public function showTab(string $tab): void
+    {
+        $this->tab = $tab === 'following' ? 'following' : 'forYou';
+    }
 
     /** Open the composer for a NEW post. */
     public function compose(): void
@@ -261,9 +300,53 @@ class XTimeline extends NativeComponent
     {
         match ($accessory) {
             'location' => $this->chooseLocation(),
-            'audience' => $this->cycleAudience(),
             default => null,
         };
+    }
+
+    /**
+     * Something was chosen in one of OUR sheets.
+     *
+     * The editor presented it because it owns the screen; the options were
+     * ours and so is what they mean. Write the answer back into the control
+     * that opened it, so the user sees what they chose.
+     */
+    #[On(SheetOptionPicked::class)]
+    public function onSheetOptionPicked(string $sheet, string $option, ?string $id = null): void
+    {
+        if ($id === null || ! str_starts_with($id, 'x-post-')) {
+            return;
+        }
+
+        match ($sheet) {
+            'audience' => $this->chooseFrom(self::AUDIENCES, $option, 'audience'),
+            'reply' => $this->chooseFrom(self::REPLIERS, $option, 'reply'),
+            default => null,
+        };
+    }
+
+    /**
+     * @param  list<array<string, string>>  $options
+     */
+    protected function chooseFrom(array $options, string $option, string $accessory): void
+    {
+        $chosen = collect($options)->firstWhere('id', $option);
+
+        if ($chosen === null) {
+            return;
+        }
+
+        if ($accessory === 'audience') {
+            $this->audience = $chosen['label'];
+
+            WysiwygEditor::setAccessory('audience', $chosen['label'], '');
+
+            return;
+        }
+
+        $this->replies = $chosen['label'];
+
+        WysiwygEditor::setAccessory('reply', 'Everyone can reply', $chosen['label']);
     }
 
     protected function chooseLocation(): void
@@ -275,16 +358,6 @@ class XTimeline extends NativeComponent
             $this->location === '' ? 'Add location' : 'Location',
             $this->location,
         );
-    }
-
-    protected function cycleAudience(): void
-    {
-        $order = ['Everyone', 'People you follow', 'Only accounts you mention'];
-        $next = $order[(array_search($this->audience, $order, true) + 1) % count($order)];
-
-        $this->audience = $next;
-
-        WysiwygEditor::setAccessory('audience', 'Everyone can reply', $next);
     }
 
     protected function openEditor(string $html, string $target): void
@@ -308,9 +381,35 @@ class XTimeline extends NativeComponent
             // Rows the APP owns. The editor draws them and reports the tap;
             // who may reply is our data, not the editor's business.
             'accessories' => [
-                ['id' => 'tag', 'label' => 'Tag people', 'icon' => 'image'],
+                // Who may see it sits beside Post, the way X arranges it.
+                [
+                    'id' => 'audience',
+                    'label' => $this->audience,
+                    'placement' => 'header',
+                    'sheet' => 'audience',
+                ],
+                ['id' => 'tag', 'label' => 'Tag people', 'icon' => 'people'],
                 ['id' => 'location', 'label' => 'Add location', 'icon' => 'link', 'value' => $this->location],
-                ['id' => 'audience', 'label' => 'Everyone can reply', 'value' => $this->audience],
+                ['id' => 'reply', 'label' => 'Everyone can reply', 'icon' => 'globe', 'sheet' => 'reply'],
+            ],
+            // ────────────────────────────────────────────────────────────
+            //  OUR sheets. The editor owns its own window, so one we drew
+            //  would open behind it — we declare the options and it
+            //  presents them, then tells us what was picked.
+            // ────────────────────────────────────────────────────────────
+            'sheets' => [
+                'audience' => [
+                    'title' => 'Choose audience',
+                    'options' => array_map(fn (array $row) => $row + [
+                        'selected' => $row['label'] === $this->audience,
+                    ], self::AUDIENCES),
+                ],
+                'reply' => [
+                    'title' => 'Who can reply?',
+                    'options' => array_map(fn (array $row) => $row + [
+                        'selected' => $row['label'] === $this->replies,
+                    ], self::REPLIERS),
+                ],
             ],
             'maxLength' => self::LIMIT,
             // Let the writer overrun and see by how much, rather than
@@ -330,8 +429,13 @@ class XTimeline extends NativeComponent
     public function render(): Element
     {
         return $this->view('x-timeline', [
-            'posts' => Post::query()->latest('created_at')->latest('id')->get(),
+            // Following is what you chose to see, and a fresh account chose
+            // nothing — so it is empty until there is somebody to follow.
+            'posts' => $this->tab === 'following'
+                ? Post::query()->whereRaw('1 = 0')->get()
+                : Post::query()->latest('created_at')->latest('id')->get(),
             'mine' => self::HANDLE,
+            'tab' => $this->tab,
         ]);
     }
 }

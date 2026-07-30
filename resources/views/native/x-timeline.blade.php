@@ -12,18 +12,34 @@
 --}}
 <column class="w-full h-full bg-theme-background safe-area">
 
-    {{-- Top bar: back, wordmark, avatar. X keeps this almost empty. --}}
-    <row class="w-full px-4 py-3 items-center justify-between">
-        <column @navigate.back a11y-label="Back" class="w-[32] h-[32] items-center justify-center">
-            <icon name="chevron.left" :size="22" class="text-theme-on-surface" />
-        </column>
-        <text class="text-[20] font-bold text-theme-on-surface">Timeline</text>
+    {{-- Top bar: your face, the wordmark, and almost nothing else. --}}
+    <row class="w-full px-4 py-2 items-center justify-between">
         <image
             src="https://i.pravatar.cc/150?u=you"
             alt="Your profile"
             class="w-[32] h-[32] rounded-full"
             :fit="2"
         />
+        <text class="text-[22] font-bold text-theme-on-surface">X</text>
+        <column @navigate.back a11y-label="Back" class="w-[32] h-[32] items-center justify-center">
+            <icon name="sparkles" :size="20" class="text-theme-on-surface" />
+        </column>
+    </row>
+
+    {{-- The two timelines X leads with. The underline marks the live one. --}}
+    <row class="w-full">
+        @foreach ([['id' => 'forYou', 'label' => 'For you'], ['id' => 'following', 'label' => 'Following']] as $item)
+            <column
+                @press="showTab('{{ $item['id'] }}')"
+                a11y-label="{{ $item['label'] }}"
+                class="flex-1 items-center pt-3"
+            >
+                <text class="text-[15] {{ $tab === $item['id'] ? 'font-bold text-theme-on-surface' : 'text-theme-on-surface-variant' }}">
+                    {{ $item['label'] }}
+                </text>
+                <column class="h-[3] w-[56] mt-2 rounded-full {{ $tab === $item['id'] ? 'bg-theme-primary' : '' }}" />
+            </column>
+        @endforeach
     </row>
 
     <divider class="w-full" />
@@ -50,10 +66,14 @@
 
     @if ($posts->isEmpty())
         <column class="w-full flex-1 items-center justify-center gap-3 px-10">
-            <icon name="square.and.pencil" :size="44" class="text-theme-on-surface-variant" />
-            <text class="text-[17] font-bold text-theme-on-surface">Nothing here yet</text>
+            <icon name="{{ $tab === 'following' ? 'person.2' : 'square.and.pencil' }}" :size="44" class="text-theme-on-surface-variant" />
+            <text class="text-[17] font-bold text-theme-on-surface">
+                {{ $tab === 'following' ? 'Nobody to follow yet' : 'Nothing here yet' }}
+            </text>
             <text class="text-center text-[14] text-theme-on-surface-variant">
-                Tap the button below to write your first post with the native editor.
+                {{ $tab === 'following'
+                    ? 'Posts from accounts you follow will show up here.'
+                    : 'Tap the button below to write your first post with the native editor.' }}
             </text>
         </column>
     @else
@@ -104,12 +124,17 @@
                                     <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->replies) }}</text>
                                 </row>
                                 <row class="items-center gap-1">
-                                    <icon name="arrow.2.squarepath" :size="16" class="text-theme-on-surface-variant" />
+                                    {{-- arrow.2.squarepath is not a name either platform maps. --}}
+                                    <icon name="arrow.2.circlepath" :size="16" class="text-theme-on-surface-variant" />
                                     <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->reposts) }}</text>
                                 </row>
                                 <row class="items-center gap-1">
                                     <icon name="heart" :size="16" class="text-theme-on-surface-variant" />
                                     <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->likes) }}</text>
+                                </row>
+                                <row class="items-center gap-1">
+                                    <icon name="chart.bar" :size="16" class="text-theme-on-surface-variant" />
+                                    <text class="text-[13] text-theme-on-surface-variant">{{ $post->metric($post->likes * 27) }}</text>
                                 </row>
                                 <icon name="square.and.arrow.up" :size="16" class="text-theme-on-surface-variant" />
                             </row>
@@ -170,12 +195,33 @@
         @endif
     </bottom-sheet>
 
+    {{-- X keeps BOTH: a tab bar for navigation and a floating button for
+         writing, because writing is not somewhere you go. --}}
+    <divider class="w-full" />
+    <row class="w-full items-center">
+        @foreach ([
+            ['icon' => 'house.fill', 'label' => 'Home', 'active' => true],
+            ['icon' => 'magnifyingglass', 'label' => 'Search', 'active' => false],
+            ['icon' => 'person.3', 'label' => 'Communities', 'active' => false],
+            ['icon' => 'bell', 'label' => 'Notifications', 'active' => false],
+            ['icon' => 'envelope', 'label' => 'Messages', 'active' => false],
+        ] as $item)
+            <column a11y-label="{{ $item['label'] }}" class="flex-1 items-center py-3">
+                <icon
+                    name="{{ $item['icon'] }}"
+                    :size="22"
+                    class="{{ $item['active'] ? 'text-theme-on-surface' : 'text-theme-on-surface-variant' }}"
+                />
+            </column>
+        @endforeach
+    </row>
+
     {{-- Compose. Absolute so it floats over the feed without blocking
          scrolling — it only occupies its own 56x56. --}}
     <column
         @press="compose"
         a11y-label="New post"
-        class="absolute bottom-[20] right-[20] w-[56] h-[56] rounded-full bg-theme-primary items-center justify-center"
+        class="absolute bottom-[76] right-[20] w-[56] h-[56] rounded-full bg-theme-primary items-center justify-center"
     >
         <icon name="square.and.pencil" :size="22" class="text-theme-on-primary" />
     </column>

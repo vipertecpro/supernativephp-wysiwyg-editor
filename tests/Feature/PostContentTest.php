@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Post;
 use App\Support\PostContent;
 
 /**
@@ -146,4 +147,16 @@ it('clips one long word rather than returning nothing', function () {
     $clipped = PostContent::clip($content['paragraphs'], 20);
 
     expect($clipped['paragraphs'][0][0]['text'])->toBe(str_repeat('x', 20));
+});
+
+it('gives a post with no JSON something for a row to draw', function () {
+    // Seeded rows, and anything written before the editor stored JSON, have
+    // body_text and nothing else. A row that draws paragraphs would show them
+    // as blank.
+    $post = new Post(['body_text' => "first line\nsecond line", 'body_json' => '']);
+
+    expect($post->content()['paragraphs'])->toBe([
+        [['text' => 'first line', 'link' => '']],
+        [['text' => 'second line', 'link' => '']],
+    ]);
 });
