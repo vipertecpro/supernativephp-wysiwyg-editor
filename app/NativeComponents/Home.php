@@ -32,6 +32,11 @@ class Home extends NativeComponent
         $this->navigate('/notion');
     }
 
+    public function openAppleNotes(): void
+    {
+        $this->navigate('/apple-notes');
+    }
+
     public function openNotes(): void
     {
         $this->navigate('/notes');

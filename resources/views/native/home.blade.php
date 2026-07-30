@@ -88,6 +88,22 @@
                 </row>
 
                 <row
+                    a11y-label="Apple Notes"
+                    a11y-hint="Autosaves as you type — no Save button at all"
+                    class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"
+                    @press="openAppleNotes"
+                >
+                    <column class="w-[44] h-[44] rounded-xl items-center justify-center bg-theme-surface-variant">
+                        <icon name="checkmark.circle" :size="22" class="text-theme-primary" />
+                    </column>
+                    <column class="flex-1 gap-[2]">
+                        <text class="text-base font-semibold text-theme-on-surface">Apple Notes · autosave</text>
+                        <text class="text-xs text-theme-on-surface-variant">No Save button · folders · pin &amp; swipe</text>
+                    </column>
+                    <icon name="chevron.right" :size="16" class="text-theme-on-surface-variant" />
+                </row>
+
+                <row
                     a11y-label="Notes"
                     a11y-hint="A real notes app backed by the full editor"
                     class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-outline px-4 py-4"

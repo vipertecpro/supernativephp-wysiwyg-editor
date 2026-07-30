@@ -1,5 +1,6 @@
 <?php
 
+use App\NativeComponents\AppleNotes;
 use App\NativeComponents\CommentBox;
 use App\NativeComponents\Composer;
 use App\NativeComponents\FacebookFeed;
@@ -20,3 +21,4 @@ Route::native('/x', XTimeline::class);
 Route::native('/linkedin', LinkedInFeed::class);
 Route::native('/facebook', FacebookFeed::class);
 Route::native('/notion', NotionPages::class);
+Route::native('/apple-notes', AppleNotes::class);

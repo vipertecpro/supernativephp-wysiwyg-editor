@@ -20,6 +20,9 @@ use Vipertecpro\WysiwygEditor\Facades\WysiwygEditor;
 class Notes extends NativeComponent
 {
     /** Options shared by create and edit. */
+    /** Which demo a note belongs to; two of them share the table. */
+    public const SURFACE = 'notes';
+
     protected function editorOptions(): array
     {
         return [
@@ -92,7 +95,7 @@ class Notes extends NativeComponent
 
     public function editNote(int $noteId): void
     {
-        $note = Note::find($noteId);
+        $note = Note::query()->onSurface(self::SURFACE)->find($noteId);
 
         if ($note === null) {
             return;
@@ -107,7 +110,7 @@ class Notes extends NativeComponent
 
     public function deleteNote(int $noteId): void
     {
-        Note::destroy($noteId);
+        Note::whereKey($noteId)->onSurface(self::SURFACE)->delete();
     }
 
     #[On(ContentSaved::class)]
@@ -118,18 +121,19 @@ class Notes extends NativeComponent
         }
 
         if ($id === 'new' || $id === null) {
-            Note::create(['body_html' => $html, 'body_text' => $text]);
+            Note::create(['surface' => self::SURFACE, 'body_html' => $html, 'body_text' => $text]);
 
             return;
         }
 
-        Note::whereKey((int) $id)->update(['body_html' => $html, 'body_text' => $text]);
+        Note::whereKey((int) $id)->onSurface(self::SURFACE)
+            ->update(['body_html' => $html, 'body_text' => $text]);
     }
 
     public function render(): Element
     {
         return $this->view('notes', [
-            'notes' => Note::latest('updated_at')->get(),
+            'notes' => Note::query()->onSurface(self::SURFACE)->latest('updated_at')->get(),
         ]);
     }
 }

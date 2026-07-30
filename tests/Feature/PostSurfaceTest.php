@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Note;
 use App\Models\Post;
 use App\NativeComponents\FacebookFeed;
 use App\NativeComponents\LinkedInFeed;
@@ -51,4 +52,21 @@ it('leaves a row with no surface in the demo that had one', function () {
     ]);
 
     expect(Post::query()->onSurface('x')->count())->toBe(1);
+});
+
+/**
+ * Two note demos share the `notes` table for the same reason the three feeds
+ * share `posts`: they are separate apps and must not see each other's rows.
+ */
+it('keeps the two note demos apart', function () {
+    foreach (['notes', 'apple'] as $surface) {
+        Note::create([
+            'surface' => $surface,
+            'body_html' => "<p>{$surface}</p>",
+            'body_text' => $surface,
+        ]);
+    }
+
+    expect(Note::query()->onSurface('apple')->pluck('body_text')->all())->toBe(['apple'])
+        ->and(Note::query()->onSurface('notes')->count())->toBe(1);
 });
