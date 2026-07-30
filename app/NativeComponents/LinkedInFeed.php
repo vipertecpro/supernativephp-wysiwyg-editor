@@ -358,8 +358,44 @@ class LinkedInFeed extends NativeComponent
         // ────────────────────────────────────────────────────────────────
         //
         // Written to SQLite ON THE DEVICE because this demo has no server.
-        // Send `json` too if the post should ever be EDITABLE again — HTML
-        // cannot carry a local file path or a poll's option ids.
+        //
+        // WHAT THE EDITOR JUST HANDED US — see ContentSaved for the full shape:
+        //
+        //   $html  to render.  <p>Shipping <strong>today</strong>.</p>
+        //                      Never contains a device path: a photo still
+        //                      uploading arrives as <figure data-pending="…">
+        //                      with no src at all, so this is safe to publish.
+        //   $text  to search.  Marks stripped, one line per block.
+        //   $json  canonical.  The ONLY form carrying device paths, poll
+        //                      option ids and the post background.
+        //
+        // Prose in one table and files in another is the usual arrangement,
+        // and the editor uploads nothing — the endpoint is yours, so the
+        // upload is too:
+        //
+        //     $post = Http::withToken($token)
+        //         ->post('https://api.example.com/v1/posts', [
+        //             'html' => $html,
+        //             'text' => $text,
+        //             'json' => $json,
+        //         ])->json();
+        //
+        //     foreach (WysiwygEditor::attachments($json) as $file) {
+        //         if ($file['path'] === '') {
+        //             continue;   // already yours; $file['url'] says where
+        //         }
+        //
+        //         Http::withToken($token)
+        //             ->attach('file', file_get_contents($file['path']))
+        //             ->post("https://api.example.com/v1/posts/{$post['id']}/media", [
+        //                 'kind' => $file['kind'],   // image | video | file
+        //                 'alt' => $file['alt'],
+        //             ]);
+        //     }
+        //
+        // Store `json` if the post should ever be EDITABLE again — re-opening
+        // from HTML alone comes back without any photo whose upload had not
+        // finished.
         if ($target === 'new') {
             Post::create([
                 'surface' => self::SURFACE,

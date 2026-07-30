@@ -30,14 +30,4 @@ class PostFactory extends Factory
             'created_at' => fake()->dateTimeBetween('-2 days'),
         ];
     }
-
-    /** A believable timeline to open the demo on, rather than an empty screen. */
-    public function seeded(): static
-    {
-        return $this->state(fn () => [
-            'author_name' => fake()->randomElement([
-                'Ada Lovelace', 'Grace Hopper', 'Alan Turing', 'Barbara Liskov',
-            ]),
-        ]);
-    }
 }
