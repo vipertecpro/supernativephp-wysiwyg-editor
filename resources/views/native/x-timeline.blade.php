@@ -67,7 +67,8 @@
                         {{-- Header: avatar, name, handle, age, and the menu --}}
                         <row class="w-full items-center gap-3">
                             <image
-                                src="https://i.pravatar.cc/150?u={{ $post->author_handle }}"
+                                {{-- Your own posts wear the same face as the composer. --}}
+                                src="https://i.pravatar.cc/150?u={{ $post->author_handle === $mine ? 'you' : $post->author_handle }}"
                                 alt="{{ $post->author_name }}"
                                 class="w-[40] h-[40] rounded-full"
                                 :fit="2"
