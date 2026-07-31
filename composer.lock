@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "72209200cf2ed77627383b8196c7e996",
+    "content-hash": "6500339b0759cb3e37fee0be1f36ceb5",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2514,8 +2514,8 @@
             "version": "0.1.0",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/NativePHP/mobile-ui/zipball/07fe29a7276e02240c5fbc75d31e54924e4efa2e",
-                "reference": "07fe29a7276e02240c5fbc75d31e54924e4efa2e"
+                "url": "https://api.github.com/repos/NativePHP/mobile-ui/zipball/548b431ad5c7989c7da766aceb1a1bc02948606f",
+                "reference": "548b431ad5c7989c7da766aceb1a1bc02948606f"
             },
             "require": {
                 "nativephp/mobile": "^4.0",
@@ -2525,7 +2525,7 @@
             "extra": {
                 "laravel": {
                     "providers": [
-                        "Nativephp\\NativeUi\\NativeUIServiceProvider"
+                        "Native\\Mobile\\UI\\NativeUIServiceProvider"
                     ]
                 },
                 "nativephp": {
@@ -2534,7 +2534,7 @@
             },
             "autoload": {
                 "psr-4": {
-                    "Nativephp\\NativeUi\\": "src/"
+                    "Native\\Mobile\\UI\\": "src/"
                 }
             }
         },
@@ -6751,7 +6751,7 @@
             "dist": {
                 "type": "path",
                 "url": "../wysiwyg-editor",
-                "reference": "03f3874fed5b0342dd5d90a4f8cbc25c9eb56c58"
+                "reference": "4f3c7934446fbce1524234a7ee0c08256880d234"
             },
             "require": {
                 "nativephp/mobile": "^3.0|^4.0",

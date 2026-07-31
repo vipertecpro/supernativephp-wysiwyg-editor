@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Native\Mobile\Providers\CameraServiceProvider;
-use Nativephp\NativeUi\NativeUIServiceProvider;
+use Native\Mobile\UI\NativeUIServiceProvider;
 use Vipertecpro\ImageCropper\ImageCropperServiceProvider;
 use Vipertecpro\WysiwygEditor\WysiwygEditorServiceProvider;
 

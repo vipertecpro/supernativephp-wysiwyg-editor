@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Nativephp\NativeUi\Theme;
+use Native\Mobile\UI\Theme;
 
 class AppServiceProvider extends ServiceProvider
 {

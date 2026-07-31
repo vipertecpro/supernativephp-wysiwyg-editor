@@ -67,6 +67,7 @@ class NotionPages extends NativeComponent
         ['id' => 'number', 'label' => 'Numbered list', 'detail' => 'A list with numbering', 'icon' => 'orderedList', 'tool' => 'orderedList'],
         ['id' => 'quote', 'label' => 'Quote', 'detail' => 'Capture a quotation', 'icon' => 'blockquote', 'tool' => 'blockquote'],
         ['id' => 'code', 'label' => 'Code', 'detail' => 'Inline monospaced text', 'icon' => 'code', 'tool' => 'code'],
+        ['id' => 'table', 'label' => 'Table', 'detail' => 'A grid of cells', 'icon' => 'table', 'tool' => 'table'],
         ['id' => 'divider', 'label' => 'Divider', 'detail' => 'Separate two sections', 'icon' => 'divider', 'tool' => 'divider'],
         ['id' => 'image', 'label' => 'Image', 'detail' => 'Upload or embed a picture', 'icon' => 'image', 'tool' => 'image'],
         ['id' => 'date', 'label' => "Today's date", 'detail' => 'Insert the date — our command, not the editor\'s', 'icon' => 'calendar', 'tool' => 'date'],
@@ -154,7 +155,7 @@ class NotionPages extends NativeComponent
             'toolbar' => [
                 'bold', 'italic', 'underline', 'strikethrough', 'code',
                 'h1', 'h2', 'h3',
-                'bulletList', 'orderedList', 'checklist', 'blockquote',
+                'bulletList', 'orderedList', 'checklist', 'blockquote', 'table',
                 'link', 'image', 'divider',
             ],
             // Type the block you want instead of hunting for it on the bar.

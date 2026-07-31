@@ -24,8 +24,8 @@
                 "type": "nativephp-ui-plugin",
                 "dist": {
                     "type": "zip",
-                    "url": "https://api.github.com/repos/NativePHP/mobile-ui/zipball/07fe29a7276e02240c5fbc75d31e54924e4efa2e",
-                    "reference": "07fe29a7276e02240c5fbc75d31e54924e4efa2e"
+                    "url": "https://api.github.com/repos/NativePHP/mobile-ui/zipball/548b431ad5c7989c7da766aceb1a1bc02948606f",
+                    "reference": "548b431ad5c7989c7da766aceb1a1bc02948606f"
                 },
                 "require": {
                     "php": "^8.2",
@@ -33,13 +33,13 @@
                 },
                 "autoload": {
                     "psr-4": {
-                        "Nativephp\\NativeUi\\": "src/"
+                        "Native\\Mobile\\UI\\": "src/"
                     }
                 },
                 "extra": {
                     "laravel": {
                         "providers": [
-                            "Nativephp\\NativeUi\\NativeUIServiceProvider"
+                            "Native\\Mobile\\UI\\NativeUIServiceProvider"
                         ]
                     },
                     "nativephp": {
