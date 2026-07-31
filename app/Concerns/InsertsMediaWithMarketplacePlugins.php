@@ -150,9 +150,14 @@ trait InsertsMediaWithMarketplacePlugins
         $uploadId = 'up-'.substr(md5($path.microtime()), 0, 8);
         $this->pendingUploadId = $uploadId;
 
+        // No `alt` is sent. The editor labels a picture with its alt text when
+        // there is one, and a filename is not alt text — a composer showing
+        // `cropped_AD7C9A15-….jpg` under a photo looks like a file manager,
+        // and none of the apps these demos imitate do it. Real alt text comes
+        // from the person posting, or from a describe-image service; until
+        // there is one, "Image" is the honest label.
         WysiwygEditor::insertMedia($this->pendingMediaKind, [
             'localPath' => $path,
-            'alt' => basename($path),
             'uploadId' => $uploadId,
         ]);
 
