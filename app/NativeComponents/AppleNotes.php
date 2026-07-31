@@ -42,9 +42,6 @@ class AppleNotes extends NativeComponent
 
     public string $folder = 'Notes';
 
-    /** Rises when a note is written away, so the list can say so. */
-    public int $savedAt = 0;
-
     public function showFolder(string $folder): void
     {
         if (in_array($folder, self::FOLDERS, true)) {
@@ -152,10 +149,6 @@ class AppleNotes extends NativeComponent
         Note::whereKey((int) substr($id, strlen('note-')))
             ->onSurface(self::SURFACE)
             ->update(['body_html' => $html, 'body_text' => $text]);
-
-        // Only so the list can say when it last happened; a real app would not
-        // need this at all.
-        $this->savedAt++;
     }
 
     public function render(): Element
