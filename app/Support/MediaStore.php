@@ -48,6 +48,45 @@ class MediaStore
     public const DIRECTORY = 'attachments';
 
     /**
+     * What to call the stored file.
+     *
+     * A picked file does not reliably arrive with an extension — Android hands
+     * over a content URI resolved to a cache entry with no suffix at all — and
+     * naming everything `.bin` is not harmless: a server hands `.bin` back as
+     * `application/octet-stream`, so the `<video>` the editor saved will not
+     * play and the `<img>` will not render. The bytes are fine; the name is
+     * what breaks it.
+     *
+     * So the extension comes from the path when there is one, and from what
+     * the file actually IS when there is not.
+     */
+    protected static function extensionFor(string $path): string
+    {
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+
+        if ($extension !== '') {
+            return strtolower($extension);
+        }
+
+        $mime = function_exists('mime_content_type') ? @mime_content_type($path) : false;
+
+        return match ($mime) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'image/heic', 'image/heif' => 'heic',
+            'video/mp4' => 'mp4',
+            'video/quicktime' => 'mov',
+            'video/webm' => 'webm',
+            'audio/mpeg' => 'mp3',
+            'audio/mp4' => 'm4a',
+            'application/pdf' => 'pdf',
+            default => 'bin',
+        };
+    }
+
+    /**
      * "Upload" a picked file.
      *
      * Here that means copying it out of the picker's temporary location into
@@ -66,7 +105,7 @@ class MediaStore
             return '';
         }
 
-        $extension = pathinfo($path, PATHINFO_EXTENSION) ?: 'bin';
+        $extension = self::extensionFor($path);
         $name = self::DIRECTORY.'/'.Str::uuid()->toString().'.'.$extension;
 
         $handle = @fopen($path, 'rb');
