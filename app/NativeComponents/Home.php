@@ -12,6 +12,11 @@ use Native\Mobile\Edge\NativeComponent;
  */
 class Home extends NativeComponent
 {
+    public function openPayload(): void
+    {
+        $this->navigate('/payload');
+    }
+
     public function openX(): void
     {
         $this->navigate('/x');

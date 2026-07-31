@@ -2,7 +2,10 @@
 
 namespace App\Concerns;
 
+use App\Support\MediaOptimization;
+use App\Support\MediaOptimizer;
 use App\Support\MediaStore;
+use App\Support\PayloadLog;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Events\Gallery\MediaSelected;
 use Native\Mobile\Facades\Camera;
@@ -32,6 +35,9 @@ trait InsertsMediaWithMarketplacePlugins
 
     /** Correlates a block with its upload so the editor can be told the outcome. */
     public string $pendingUploadId = '';
+
+    /** What the optimizer did to the last file, for a screen that shows it. */
+    public ?MediaOptimization $lastOptimization = null;
 
     /**
      * Paths still waiting to go in, when the user picked several at once.
@@ -150,6 +156,20 @@ trait InsertsMediaWithMarketplacePlugins
         $uploadId = 'up-'.substr(md5($path.microtime()), 0, 8);
         $this->pendingUploadId = $uploadId;
 
+        // ── COMPRESS / RESIZE / TRANSCODE HERE ──────────────────────────
+        //
+        // The file is still yours at this point: the editor has not seen it
+        // and nothing has been uploaded. Whatever comes back is what the user
+        // sees AND what gets sent, so there is no second copy to keep in step.
+        // See App\Support\MediaOptimizer for what belongs here and what does
+        // not — video transcoding in PHP being the clearest "does not".
+        $optimization = MediaOptimizer::optimize($path, $this->pendingMediaKind);
+        $path = $optimization->path;
+
+        $this->lastOptimization = $optimization;
+
+        PayloadLog::call('MediaOptimizer::optimize', $optimization->summary());
+
         // No `alt` is sent. The editor labels a picture with its alt text when
         // there is one, and a filename is not alt text — a composer showing
         // `cropped_AD7C9A15-….jpg` under a photo looks like a file manager,
@@ -161,22 +181,35 @@ trait InsertsMediaWithMarketplacePlugins
             'uploadId' => $uploadId,
         ]);
 
+        PayloadLog::call('WysiwygEditor::insertMedia', $this->pendingMediaKind.' '.$path);
+
         // ── Where your API call goes ────────────────────────────────────
         // $url = Http::attach('file', file_get_contents($path), basename($path))
         //     ->withToken($user->apiToken)
         //     ->post('https://api.example.com/v1/media')
         //     ->json('url');
-        $url = MediaStore::store($path);
+        // A throw in here would leave the block spinning forever with nothing
+        // on screen to say why — the failure mode this whole screen exists to
+        // make visible. Catch it, tell the editor, and record it.
+        try {
+            $url = MediaStore::store($path);
+        } catch (\Throwable $e) {
+            PayloadLog::failure('MediaStore::store', $e->getMessage());
+            WysiwygEditor::uploadFailed($uploadId, 'Could not store this file.');
+
+            return;
+        }
 
         if ($url === '') {
-            // Tell the editor rather than leaving the block spinning: it marks
-            // the block failed so the user can remove it and try again.
+            PayloadLog::failure('MediaStore::store', 'returned no path for '.$path);
             WysiwygEditor::uploadFailed($uploadId, 'Could not store this file.');
 
             return;
         }
 
         WysiwygEditor::uploadCompleted($uploadId, $url);
+
+        PayloadLog::call('WysiwygEditor::uploadCompleted', $url);
 
         // A real app would upload here — with its own auth and endpoint, or
         // nativephp/mobile-background-tasks — then report the outcome:

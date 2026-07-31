@@ -23,6 +23,23 @@
             {{-- Example cards --}}
             <column class="w-full gap-3">
 
+                {{-- First on purpose: understand the data before the demos. --}}
+                <row
+                    a11y-label="The payload"
+                    a11y-hint="What the editor sends, and how to debug it"
+                    class="w-full items-center gap-4 rounded-2xl bg-theme-surface border border-theme-primary px-4 py-4"
+                    @press="openPayload"
+                >
+                    <column class="w-[44] h-[44] rounded-xl items-center justify-center bg-theme-surface-variant">
+                        <icon name="chevron.left.forwardslash.chevron.right" :size="22" class="text-theme-primary" />
+                    </column>
+                    <column class="flex-1 gap-[2]">
+                        <text class="text-base font-semibold text-theme-on-surface">Start here · the payload</text>
+                        <text class="text-xs text-theme-on-surface-variant">HTML / text / JSON · files · a live event log</text>
+                    </column>
+                    <icon name="chevron.right" :size="16" class="text-theme-on-surface-variant" />
+                </row>
+
                 <row
                     a11y-label="X"
                     a11y-hint="Short posts with a countdown ring"
