@@ -25,7 +25,7 @@ composer is a product decision, not a missing feature.
 
 | Writing | The timeline |
 | --- | --- |
-| ![X composer](docs/screenshots/01-x-composer.png) | ![X timeline](docs/screenshots/02-x-timeline.png) |
+| ![X composer](docs/screenshots/ios/01-x-composer.png) | ![X timeline](docs/screenshots/ios/02-x-timeline.png) |
 
 The rows under the text — *Tag people*, *Add location*, *Everyone can reply* —
 are **host accessories**: the app declares them, the editor draws them inside
@@ -39,7 +39,7 @@ see-more clamp on the feed.
 
 | `@` looks people up | Posted |
 | --- | --- |
-| ![LinkedIn mentions](docs/screenshots/03-linkedin-mentions.png) | ![LinkedIn feed](docs/screenshots/04-linkedin-feed.png) |
+| ![LinkedIn mentions](docs/screenshots/ios/03-linkedin-mentions.png) | ![LinkedIn feed](docs/screenshots/ios/04-linkedin-feed.png) |
 
 The editor spots the trigger and asks; **which** people exist is the app's
 business, answered from its own database. The mention comes back in the saved
@@ -51,7 +51,7 @@ Short posts become a card, and the same document renders in the feed.
 
 | Picking a colour | The card |
 | --- | --- |
-| ![Facebook background](docs/screenshots/05-facebook-background.png) | ![Facebook feed](docs/screenshots/06-facebook-feed.png) |
+| ![Facebook background](docs/screenshots/ios/05-facebook-background.png) | ![Facebook feed](docs/screenshots/ios/06-facebook-feed.png) |
 
 ### Notion — block-based pages
 
@@ -59,9 +59,9 @@ A `/` palette, tables, and to-dos whose ticks survive the save.
 
 | `/` offers the app's own commands | A table, edited where it sits |
 | --- | --- |
-| ![Slash palette](docs/screenshots/07-notion-slash.png) | ![Table](docs/screenshots/08-notion-table.png) |
+| ![Slash palette](docs/screenshots/ios/07-notion-slash.png) | ![Table](docs/screenshots/ios/08-notion-table.png) |
 
-![Checklist](docs/screenshots/09-notion-checklist.png)
+![Checklist](docs/screenshots/ios/09-notion-checklist.png)
 
 The command list is **the app's**, not the editor's. `/date` is in it precisely
 because the editor has no idea what a date is: it reports the pick and the app
@@ -77,7 +77,7 @@ would reach for one. Folders, pinning, and swipe-to-delete.
 
 | Nothing to press | Swipe |
 | --- | --- |
-| ![Apple Notes editor](docs/screenshots/10-apple-notes-editor.png) | ![Swipe to delete](docs/screenshots/11-apple-notes-swipe.png) |
+| ![Apple Notes editor](docs/screenshots/ios/10-apple-notes-editor.png) | ![Swipe to delete](docs/screenshots/ios/11-apple-notes-swipe.png) |
 
 `changeDebounce` is the whole trick: the editor emits `ContentChanged` when
 typing settles, the app writes it away, and `saveStyle => 'none'` removes the
@@ -89,7 +89,41 @@ button that would otherwise claim to do what the app is already doing.
 preset — bold / italic / link, 500-character cap), **Composer** (every tool,
 with a toggle to inspect the raw HTML), and **Branded Theme**.
 
-![The gallery](docs/screenshots/00-home.png)
+![The gallery](docs/screenshots/ios/00-home.png)
+
+---
+
+## The same code on Android
+
+Everything above is iOS. Not one line of the demo changes for Android — the
+plugin ships a Swift implementation and a Kotlin one, held to the same document
+model by a parity test suite that runs both and compares the output byte for
+byte. These are the same screens on a Pixel:
+
+![The gallery on Android](docs/screenshots/android/00-home.png)
+
+| X | LinkedIn | Facebook |
+| --- | --- | --- |
+| ![X on Android](docs/screenshots/android/01-x-composer.png) | ![Mentions on Android](docs/screenshots/android/03-linkedin-mentions.png) | ![Background on Android](docs/screenshots/android/05-facebook-background.png) |
+
+| `/` commands | Tables | Checklists |
+| --- | --- | --- |
+| ![Slash on Android](docs/screenshots/android/07-notion-slash.png) | ![Table on Android](docs/screenshots/android/08-notion-table.png) | ![Checklist on Android](docs/screenshots/android/09-notion-checklist.png) |
+
+| Autosave | Swipe to delete |
+| --- | --- |
+| ![Apple Notes on Android](docs/screenshots/android/10-apple-notes-editor.png) | ![Swipe on Android](docs/screenshots/android/11-apple-notes-swipe.png) |
+
+And what those composers saved, rendered back into each feed:
+
+| X | LinkedIn | Facebook |
+| --- | --- | --- |
+| ![X timeline on Android](docs/screenshots/android/02-x-timeline.png) | ![LinkedIn feed on Android](docs/screenshots/android/04-linkedin-feed.png) | ![Facebook feed on Android](docs/screenshots/android/06-facebook-feed.png) |
+
+Each platform draws with its own native controls, so a table on Android is a
+Compose grid and on iOS a SwiftUI one — but the HTML and JSON they save are
+identical, which is the promise that matters when the same account opens a
+document on both.
 
 ---
 
