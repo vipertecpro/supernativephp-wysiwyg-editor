@@ -19,14 +19,17 @@
         than adding a chevron the app does not have.
     --}}
     <row class="w-full items-center gap-3 px-3 py-2">
-        <image
-            @navigate.back
-            a11y-label="Back to examples"
-            src="https://i.pravatar.cc/150?u=you"
-            alt="Your profile"
-            class="w-[32] h-[32] rounded-full"
-            :fit="2"
-        />
+        {{-- The directive rides on a CONTAINER, not on the <image> itself:
+             Android does not make an image pressable, so putting it there
+             left the only way out of this screen dead on one platform. --}}
+        <pressable @navigate.back a11y-label="Back to examples" class="w-[32] h-[32]">
+            <image
+                src="https://i.pravatar.cc/150?u=you"
+                alt="Your profile"
+                class="w-[32] h-[32] rounded-full"
+                :fit="2"
+            />
+        </pressable>
         <row class="flex-1 items-center gap-2 rounded-lg border border-theme-outline px-3 py-2">
             <icon name="magnifyingglass" :size="18" class="text-theme-on-surface-variant" />
             <text class="text-[15] text-theme-on-surface-variant">Search</text>

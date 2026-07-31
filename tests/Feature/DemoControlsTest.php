@@ -99,3 +99,34 @@ it('names only glyphs the editor can draw', function (string $component) {
 
     expect(array_diff(array_unique($used), $known[1]))->toBe([]);
 })->with('composers');
+
+/**
+ * A handler is only a control if the element it sits on can be pressed.
+ *
+ * `<image>`, `<text>` and `<icon>` accept the directive on iOS and ignore it
+ * on Android, so a control written that way works on one platform and is dead
+ * on the other. The back control on three demo screens was dead on Android for
+ * exactly this reason, and every photo in a post was untappable — none of which
+ * the "no dead controls" test above could see, because the handler it points
+ * at exists and is perfectly callable.
+ *
+ * Put the directive on a `<pressable>`, `<row>`, `<column>` or `<button>` and
+ * wrap the visual inside it.
+ */
+it('never hangs a handler on an element that cannot be pressed', function () {
+    $offenders = [];
+
+    foreach (glob(resource_path('views/native/**/*.blade.php')) + glob(resource_path('views/native/*.blade.php')) as $view) {
+        $markup = file_get_contents($view);
+
+        preg_match_all('/<(image|text|icon)((?:[^<>]|\n)*?)>/', $markup, $tags, PREG_SET_ORDER);
+
+        foreach ($tags as $tag) {
+            if (preg_match('/@(press|navigate|swipe)/', $tag[2])) {
+                $offenders[] = basename($view).' <'.$tag[1].'>';
+            }
+        }
+    }
+
+    expect($offenders)->toBe([], 'handlers that do nothing on Android: '.implode(', ', $offenders));
+});

@@ -20,11 +20,12 @@
         than adding a chevron the app does not have.
     --}}
     <row class="w-full items-center justify-between px-4 py-2">
-        <text
-            @navigate.back
-            a11y-label="Back to examples"
-            class="text-[24] font-bold text-theme-primary"
-        >facebook</text>
+        {{-- The directive rides on a CONTAINER, not on the <text> itself, for
+             the same reason as LinkedIn's avatar: it is not reliably pressable
+             on both platforms, and this is the only way out of the screen. --}}
+        <pressable @navigate.back a11y-label="Back to examples">
+            <text class="text-[24] font-bold text-theme-primary">facebook</text>
+        </pressable>
         <row class="items-center gap-2">
             <column class="w-[36] h-[36] rounded-full bg-theme-surface-variant items-center justify-center">
                 <icon name="magnifyingglass" :size="18" class="text-theme-on-surface" />

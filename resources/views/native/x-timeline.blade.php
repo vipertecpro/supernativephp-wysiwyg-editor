@@ -16,14 +16,14 @@
     <row class="w-full px-4 py-2 items-center justify-between">
         {{-- Your own face carries the way back to the gallery: X has no back
              button, and adding one it does not have would show. --}}
-        <image
-            @navigate.back
-            a11y-label="Back to examples"
-            src="https://i.pravatar.cc/150?u=you"
-            alt="Your profile"
-            class="w-[32] h-[32] rounded-full"
-            :fit="2"
-        />
+        <pressable @navigate.back a11y-label="Back to examples" class="w-[32] h-[32]">
+            <image
+                src="https://i.pravatar.cc/150?u=you"
+                alt="Your profile"
+                class="w-[32] h-[32] rounded-full"
+                :fit="2"
+            />
+        </pressable>
         <text class="text-[22] font-bold text-theme-on-surface">X</text>
         <column class="w-[32] h-[32] items-center justify-center">
             <icon name="sparkles" :size="20" class="text-theme-on-surface" />

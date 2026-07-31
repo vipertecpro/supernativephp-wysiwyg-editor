@@ -12,47 +12,51 @@
 @if ($images !== [])
     <column class="w-full mt-2 rounded-xl">
         @if ($shape === 'single')
-            <image
-                @press="preview('image', '{{ $images[0]['src'] }}', '{{ $images[0]['caption'] }}')"
-                src="{{ $images[0]['src'] }}"
-                alt="{{ $images[0]['alt'] ?: 'Photo' }}"
-                class="w-full h-[200] rounded-xl"
-                :fit="2"
-            />
+            <pressable @press="preview('image', '{{ $images[0]['src'] }}', '{{ $images[0]['caption'] }}')" class="w-full">
+                <image
+                    src="{{ $images[0]['src'] }}"
+                    alt="{{ $images[0]['alt'] ?: 'Photo' }}"
+                    class="w-full h-[200] rounded-xl"
+                    :fit="2"
+                />
+            </pressable>
         @elseif ($shape === 'pair')
             <row class="w-full gap-[2]">
                 @foreach ($images as $image)
                     <column class="flex-1">
-                        <image
-                            @press="preview('image', '{{ $image['src'] }}', '{{ $image['caption'] }}')"
-                            src="{{ $image['src'] }}"
-                            alt="{{ $image['alt'] ?: 'Photo' }}"
-                            class="w-full h-[160] rounded-xl"
-                            :fit="2"
-                        />
+                        <pressable @press="preview('image', '{{ $image['src'] }}', '{{ $image['caption'] }}')" class="w-full">
+                            <image
+                                src="{{ $image['src'] }}"
+                                alt="{{ $image['alt'] ?: 'Photo' }}"
+                                class="w-full h-[160] rounded-xl"
+                                :fit="2"
+                            />
+                        </pressable>
                     </column>
                 @endforeach
             </row>
         @elseif ($shape === 'feature')
             <row class="w-full gap-[2]">
                 <column class="flex-1">
-                    <image
-                        @press="preview('image', '{{ $images[0]['src'] }}', '{{ $images[0]['caption'] }}')"
-                        src="{{ $images[0]['src'] }}"
-                        alt="{{ $images[0]['alt'] ?: 'Photo' }}"
-                        class="w-full h-[200] rounded-xl"
-                        :fit="2"
-                    />
+                    <pressable @press="preview('image', '{{ $images[0]['src'] }}', '{{ $images[0]['caption'] }}')" class="w-full">
+                        <image
+                            src="{{ $images[0]['src'] }}"
+                            alt="{{ $images[0]['alt'] ?: 'Photo' }}"
+                            class="w-full h-[200] rounded-xl"
+                            :fit="2"
+                        />
+                    </pressable>
                 </column>
                 <column class="flex-1 gap-[2]">
                     @foreach (array_slice($images, 1, 2) as $image)
-                        <image
-                            @press="preview('image', '{{ $image['src'] }}', '{{ $image['caption'] }}')"
-                            src="{{ $image['src'] }}"
-                            alt="{{ $image['alt'] ?: 'Photo' }}"
-                            class="w-full h-[99] rounded-xl"
-                            :fit="2"
-                        />
+                        <pressable @press="preview('image', '{{ $image['src'] }}', '{{ $image['caption'] }}')" class="w-full">
+                            <image
+                                src="{{ $image['src'] }}"
+                                alt="{{ $image['alt'] ?: 'Photo' }}"
+                                class="w-full h-[99] rounded-xl"
+                                :fit="2"
+                            />
+                        </pressable>
                     @endforeach
                 </column>
             </row>
@@ -62,13 +66,14 @@
                     <row class="w-full gap-[2]">
                         @foreach ($pair as $image)
                             <column class="flex-1">
-                                <image
-                                    @press="preview('image', '{{ $image['src'] }}', '{{ $image['caption'] }}')"
-                                    src="{{ $image['src'] }}"
-                                    alt="{{ $image['alt'] ?: 'Photo' }}"
-                                    class="w-full h-[110] rounded-xl"
-                                    :fit="2"
-                                />
+                                <pressable @press="preview('image', '{{ $image['src'] }}', '{{ $image['caption'] }}')" class="w-full">
+                                    <image
+                                        src="{{ $image['src'] }}"
+                                        alt="{{ $image['alt'] ?: 'Photo' }}"
+                                        class="w-full h-[110] rounded-xl"
+                                        :fit="2"
+                                    />
+                                </pressable>
                             </column>
                         @endforeach
                     </row>
