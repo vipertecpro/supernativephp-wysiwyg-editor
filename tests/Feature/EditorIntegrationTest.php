@@ -62,3 +62,16 @@ it('writes the date for a command the editor does not own', function () {
 
     $bridge->assertTextInserted(now()->format('j F Y'));
 });
+
+/**
+ * Somebody reaching for a to-do types `/todo`, not `/to-do`. A plain
+ * str_contains against the label says no, because the label is hyphenated.
+ */
+it('finds a command however the user punctuates it', function (string $typed) {
+    $bridge = Native::fakeBridge();
+
+    Native::test(NotionPages::class)
+        ->call('onSuggestionRequested', 'command', $typed, 'page-1');
+
+    $bridge->assertSuggestionsOffered(['To-do list']);
+})->with(['todo', 'to-do', 'To-Do', 'TODO']);

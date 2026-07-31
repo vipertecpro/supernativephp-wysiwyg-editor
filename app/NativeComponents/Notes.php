@@ -73,15 +73,33 @@ class Notes extends NativeComponent
             return;
         }
 
-        $needle = mb_strtolower(trim($query));
+        // Punctuation stripped so `/todo` finds "To-do list".
+        $needle = preg_replace('/[^a-z0-9]/', '', mb_strtolower(trim($query)));
 
         $matches = array_values(array_filter(
             self::COMMANDS,
-            fn (array $command) => $needle === ''
-                || str_contains(mb_strtolower($command['label']), $needle),
+            fn (array $command) => $this->commandMatches($command, (string) $needle),
         ));
 
         WysiwygEditor::suggestions($query, array_slice($matches, 0, 6));
+    }
+
+    /**
+     * Does this command answer to what was typed?
+     *
+     * Matched against the id as well as the label, and with punctuation
+     * ignored — somebody typing the obvious `/todo` should find "To-do list",
+     * and a plain `str_contains` says no because of the hyphen.
+     */
+    protected function commandMatches(array $command, string $needle): bool
+    {
+        if ($needle === '') {
+            return true;
+        }
+
+        $haystack = preg_replace('/[^a-z0-9]/', '', mb_strtolower($command['label'].' '.$command['id']));
+
+        return str_contains((string) $haystack, $needle);
     }
 
     public function newNote(): void
