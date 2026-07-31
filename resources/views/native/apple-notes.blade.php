@@ -51,13 +51,16 @@
             </text>
         </column>
     @else
-        <scroll-view class="w-full flex-1">
-            <column class="w-full px-4">
+        {{-- A NativeUI list rather than a scroll-view of rows, because swipe
+             actions live in the list renderer: `@swipeDelete` on a hand-built
+             row compiles fine and then does nothing, since nothing is there to
+             read it. The row markup below is unchanged — the list renders
+             whatever child it is given and only adds the gesture. --}}
+        <native:list class="w-full flex-1">
                 @foreach ($notes as $note)
-                    {{-- Swipe to bin it, the way a list on this platform works. --}}
                     <column
                         @press="openNote({{ $note->id }})"
-                        @swipe-delete="deleteNote({{ $note->id }})"
+                        @swipeDelete="deleteNote({{ $note->id }})"
                         a11y-label="{{ $note->title() }}"
                         class="w-full rounded-xl bg-theme-surface px-4 py-3 mb-2"
                     >
@@ -66,13 +69,13 @@
                                 <icon name="mappin" :size="13" class="text-[#F59E0B]" />
                             @endif
                             <text class="flex-1 text-[16] font-semibold text-theme-on-surface">{{ $note->title() }}</text>
-                            <column
+                            <pressable
                                 @press="togglePin({{ $note->id }})"
                                 a11y-label="{{ $note->pinned ? 'Unpin' : 'Pin' }}"
                                 class="w-[28] h-[28] items-center justify-center"
                             >
                                 <icon name="mappin.circle" :size="18" class="{{ $note->pinned ? 'text-[#F59E0B]' : 'text-theme-on-surface-variant' }}" />
-                            </column>
+                            </pressable>
                         </row>
 
                         <row class="w-full items-center gap-2 pt-[2]">
@@ -83,10 +86,7 @@
                         </row>
                     </column>
                 @endforeach
-
-                <column class="w-full h-[16]" />
-            </column>
-        </scroll-view>
+        </native:list>
     @endif
 
     {{-- What autosave looks like from out here: a count that goes up on its

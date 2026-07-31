@@ -116,7 +116,15 @@ it('names only glyphs the editor can draw', function (string $component) {
 it('never hangs a handler on an element that cannot be pressed', function () {
     $offenders = [];
 
-    foreach (glob(resource_path('views/native/**/*.blade.php')) + glob(resource_path('views/native/*.blade.php')) as $view) {
+    // array_merge, NOT `+`: the union operator keeps keys from the left, so
+    // `+` silently drops the first file of the second list — which is how this
+    // very guard missed apple-notes.blade.php while reporting success.
+    $views = array_merge(
+        glob(resource_path('views/native/*.blade.php')),
+        glob(resource_path('views/native/**/*.blade.php')),
+    );
+
+    foreach ($views as $view) {
         $markup = file_get_contents($view);
 
         preg_match_all('/<(image|text|icon)((?:[^<>]|\n)*?)>/', $markup, $tags, PREG_SET_ORDER);
@@ -129,4 +137,60 @@ it('never hangs a handler on an element that cannot be pressed', function () {
     }
 
     expect($offenders)->toBe([], 'handlers that do nothing on Android: '.implode(', ', $offenders));
+});
+
+/**
+ * A directive the precompiler does not recognise is silently dropped.
+ *
+ * `@swipe-delete` looks exactly like `@swipeDelete` and does nothing at all —
+ * swipe-to-delete in the Apple Notes demo was inert on both platforms because
+ * of one hyphen. Nothing warns: the attribute is simply not translated, and
+ * the element renders without it.
+ *
+ * The recognised set is read out of the precompiler itself, so this follows
+ * NativePHP rather than a list copied here that could drift from it.
+ */
+it('only uses event directives the precompiler recognises', function () {
+    $precompiler = file_get_contents(base_path('vendor/nativephp/mobile/src/Edge/NativeTagPrecompiler.php'));
+
+    // The precompiler translates in several passes, each with its own
+    // alternation — take them all, not the first one found.
+    expect(preg_match_all('/@\(([a-zA-Z|]+)\)=/', $precompiler, $lists))->toBeGreaterThan(0, 'cannot read the directive list');
+
+    $known = ['navigate.back', 'navigate', 'a11y-label'];
+
+    foreach ($lists[1] as $alternation) {
+        $known = array_merge($known, explode('|', $alternation));
+    }
+
+    // If this fails, the alternation moved and everything below is checking
+    // nothing. `toContain` is variadic, so it takes no message.
+    expect($known)->toContain('swipeDelete');
+
+    $unknown = [];
+
+    // array_merge, NOT `+`: the union operator keeps keys from the left, so
+    // `+` silently drops the first file of the second list — which is how this
+    // very guard missed apple-notes.blade.php while reporting success.
+    $views = array_merge(
+        glob(resource_path('views/native/*.blade.php')),
+        glob(resource_path('views/native/**/*.blade.php')),
+    );
+
+    foreach ($views as $view) {
+        preg_match_all('/@([a-zA-Z][a-zA-Z.-]*)=/', file_get_contents($view), $used);
+
+        foreach ($used[1] as $directive) {
+            // A hyphenated name that is not known is a child-component event
+            // binding — legitimate — UNLESS its camelCase form is a real
+            // directive, which makes it a misspelling of one.
+            $camel = lcfirst(str_replace(' ', '', ucwords(str_replace('-', ' ', $directive))));
+
+            if (! in_array($directive, $known, true) && in_array($camel, $known, true)) {
+                $unknown[] = basename($view).' @'.$directive.' (meant @'.$camel.')';
+            }
+        }
+    }
+
+    expect($unknown)->toBe([], 'directives that are silently dropped: '.implode(', ', $unknown));
 });
