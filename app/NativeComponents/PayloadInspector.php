@@ -97,6 +97,26 @@ class PayloadInspector extends NativeComponent
     }
 
     /**
+     * Start over.
+     *
+     * Wipes the captured document as well as the log, because a screen you
+     * cannot get back to its empty state is a screen you can only demonstrate
+     * once.
+     */
+    public function reset(): void
+    {
+        $this->html = '';
+        $this->text = '';
+        $this->json = '';
+        $this->changes = 0;
+        $this->saved = false;
+        $this->lastOptimization = null;
+
+        PayloadLog::clear();
+        PayloadLog::event('Reset', 'the screen was cleared');
+    }
+
+    /**
      * Typing settled.
      *
      * Wrapped because this is the honest shape: an exception thrown in here
@@ -173,15 +193,40 @@ class PayloadInspector extends NativeComponent
         }
 
         return array_map(function (array $file): array {
-            $path = $file['path'] !== '' ? $file['path'] : $file['url'];
-            $exists = $path !== '' && is_readable($path);
+            // `src` and `localPath` are DIFFERENT things and collapsing them
+            // is a lie: `src` is where the document points, `localPath` is the
+            // file on this device. After an upload a block usually carries
+            // both, and showing only the local one made an uploaded file look
+            // like it was still sitting in the picker's cache.
+            $src = $file['url'];
+            $local = $file['path'];
+
+            // Measure whichever is actually on disk. A `src` can be an https
+            // URL, in which case nothing here can size it.
+            $onDisk = '';
+
+            foreach ([$local, $src] as $candidate) {
+                if ($candidate !== '' && is_readable($candidate)) {
+                    $onDisk = $candidate;
+
+                    break;
+                }
+            }
 
             return [
                 'kind' => $file['kind'],
-                'name' => $path === '' ? '—' : basename($path),
-                'size' => $exists ? MediaOptimization::bytes((int) filesize($path)) : 'not on disk',
-                'state' => $file['url'] !== '' ? 'uploaded' : 'pending',
-                'uploadId' => $file['uploadId'] !== '' ? $file['uploadId'] : '—',
+                'src' => $src !== '' ? $src : '—',
+                'local' => $local !== '' ? $local : '—',
+                // A file the editor still holds a local copy of, whose local
+                // copy has since been cleared by the system, is a real state
+                // and worth seeing.
+                'missing' => $local !== '' && ! is_readable($local),
+                'size' => $onDisk !== '' ? MediaOptimization::bytes((int) filesize($onDisk)) : 'unknown',
+                'state' => $src !== '' ? 'uploaded' : 'pending',
+                // The editor drops the correlation id the moment the upload
+                // completes — it has done its job. An always-empty column
+                // reads as a bug, so it only shows while it means something.
+                'uploadId' => $file['uploadId'],
             ];
         }, WysiwygEditor::attachments($this->json));
     }

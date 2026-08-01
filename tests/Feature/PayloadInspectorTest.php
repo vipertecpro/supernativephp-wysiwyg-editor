@@ -39,9 +39,84 @@ it('splits the files out of the document', function () {
     $files = $screen->files();
 
     expect($files)->toHaveCount(2);
-    expect($files[0])->toMatchArray(['kind' => 'image', 'state' => 'uploaded', 'uploadId' => 'up-123']);
+    expect($files[0])->toMatchArray(['kind' => 'image', 'state' => 'uploaded']);
     // No `src` yet means the upload has not finished.
     expect($files[1])->toMatchArray(['kind' => 'video', 'state' => 'pending']);
+});
+
+/**
+ * `src` and `localPath` are different things and the screen must not collapse
+ * them. It used to show whichever it found first, preferring the local one —
+ * so an uploaded file displayed the picker's cache filename while its badge
+ * said "uploaded", which is precisely the confusion this screen exists to
+ * prevent.
+ */
+it('shows where a file points and where it lives, separately', function () {
+    $screen = new PayloadInspector;
+
+    $screen->onChanged('<p>x</p>', 'x', json_encode([
+        'version' => 2,
+        'blocks' => [[
+            'type' => 'image',
+            'src' => 'https://cdn.example.com/stored/abc.jpg',
+            'localPath' => '/tmp/cache/cropped_original.jpg',
+        ]],
+    ]));
+
+    $file = $screen->files()[0];
+
+    expect($file['src'])->toBe('https://cdn.example.com/stored/abc.jpg');
+    expect($file['local'])->toBe('/tmp/cache/cropped_original.jpg');
+    expect($file['state'])->toBe('uploaded');
+});
+
+/**
+ * The editor drops the correlation id the moment an upload completes, so an
+ * always-empty uploadId column reads as broken. It is only shown while it
+ * still means something.
+ */
+it('carries the upload id only while the upload is in flight', function () {
+    $screen = new PayloadInspector;
+
+    $screen->onChanged('<p>x</p>', 'x', json_encode([
+        'version' => 2,
+        'blocks' => [
+            ['type' => 'image', 'localPath' => '/tmp/a.jpg', 'uploadId' => 'up-123'],
+            ['type' => 'image', 'src' => '/tmp/stored.jpg'],
+        ],
+    ]));
+
+    $files = $screen->files();
+
+    expect($files[0]['uploadId'])->toBe('up-123');
+    expect($files[1]['uploadId'])->toBe('');
+});
+
+it('says so when the local copy has been cleared from under it', function () {
+    $screen = new PayloadInspector;
+
+    $screen->onChanged('<p>x</p>', 'x', json_encode([
+        'version' => 2,
+        'blocks' => [['type' => 'image', 'localPath' => '/tmp/definitely-not-here-'.uniqid().'.jpg']],
+    ]));
+
+    expect($screen->files()[0]['missing'])->toBeTrue();
+});
+
+it('can be put back to empty', function () {
+    $screen = new PayloadInspector;
+
+    $screen->onChanged('<p>a</p>', 'a', '{"version":2,"blocks":[]}');
+    $screen->onSaved('<p>a</p>', 'a', '{"version":2,"blocks":[]}');
+
+    $screen->reset();
+
+    expect($screen->html)->toBe('');
+    expect($screen->text)->toBe('');
+    expect($screen->json)->toBe('');
+    expect($screen->changes)->toBe(0);
+    expect($screen->saved)->toBeFalse();
+    expect($screen->files())->toBe([]);
 });
 
 it('records the conversation, newest first', function () {

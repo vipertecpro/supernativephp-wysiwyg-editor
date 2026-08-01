@@ -32,6 +32,11 @@
                     {{ $changes }} {{ $changes === 1 ? 'change' : 'changes' }}{{ $saved ? ' · sent' : '' }}
                 </text>
             </column>
+            {{-- Start over. Without this the screen can only be demonstrated
+                 once per launch. --}}
+            <pressable @press="reset" a11y-label="Reset the screen" class="w-[44] h-[44] items-center justify-center rounded-xl bg-theme-surface-variant">
+                <icon name="arrow.2.circlepath" :size="18" class="text-theme-on-surface" />
+            </pressable>
         @endif
     </row>
 
@@ -122,16 +127,36 @@
                 @endif
 
                 @forelse ($files as $file)
-                    <column class="w-full rounded-xl bg-theme-surface p-3 gap-1">
+                    <column class="w-full rounded-xl bg-theme-surface p-3 gap-2">
                         <row class="w-full items-center gap-2">
-                            <text class="flex-1 text-[14] font-semibold text-theme-on-surface">{{ $file['name'] }}</text>
-                            <text class="text-[11] rounded-full bg-theme-surface-variant px-2 py-1 text-theme-on-surface-variant">
+                            <text class="flex-1 text-[14] font-semibold text-theme-on-surface">
+                                {{ $file['kind'] }} · {{ $file['size'] }}
+                            </text>
+                            <text class="text-[11] rounded-full px-2 py-1 {{ $file['state'] === 'pending' ? 'bg-theme-primary text-theme-on-primary' : 'bg-theme-surface-variant text-theme-on-surface-variant' }}">
                                 {{ $file['state'] }}
                             </text>
                         </row>
-                        <text font="mono" class="text-[11] text-theme-on-surface-variant">
-                            kind {{ $file['kind'] }} · {{ $file['size'] }} · uploadId {{ $file['uploadId'] }}
-                        </text>
+
+                        {{-- Both paths, separately. `src` is what the document
+                             points at; `localPath` is the file on this device.
+                             They are not the same thing and a screen about the
+                             payload must not pretend they are. --}}
+                        <column class="w-full gap-[2]">
+                            <text font="mono" class="text-[11] text-theme-on-surface-variant">src&nbsp;&nbsp;&nbsp;{{ $file['src'] }}</text>
+                            <text font="mono" class="text-[11] text-theme-on-surface-variant">local&nbsp;{{ $file['local'] }}</text>
+                        </column>
+
+                        @if ($file['uploadId'] !== '')
+                            <text font="mono" class="text-[11] text-theme-primary">
+                                uploadId {{ $file['uploadId'] }} — still in flight
+                            </text>
+                        @endif
+
+                        @if ($file['missing'])
+                            <text class="text-[11] text-[#EF4444]">
+                                The local copy is gone — the system cleared the cache it was in.
+                            </text>
+                        @endif
                     </column>
                 @empty
                     <column class="w-full rounded-xl bg-theme-surface p-4 items-center">
