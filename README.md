@@ -166,9 +166,9 @@ byte. These are the same screens on a Pixel:
 
 …and the payload screen, which is the same code reading the same events:
 
-| The files | The log |
-| --- | --- |
-| ![Files on Android](docs/screenshots/android/13-payload-files.png) | ![Log on Android](docs/screenshots/android/14-payload-log.png) |
+| The three formats | The files | The log |
+| --- | --- | --- |
+| ![Payload on Android](docs/screenshots/android/12-payload-html.png) | ![Files on Android](docs/screenshots/android/13-payload-files.png) | ![Log on Android](docs/screenshots/android/14-payload-log.png) |
 
 And what those composers saved, rendered back into each feed:
 
