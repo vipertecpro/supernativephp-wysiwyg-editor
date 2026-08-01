@@ -42,6 +42,15 @@ an exception thrown inside an event handler on a phone leaves *nothing* behind,
 no console and no stack trace, just a screen that quietly stopped updating. The
 handlers here catch and record instead.
 
+### Somewhere to stress it
+
+The screen also has a **"Stress it — open 600 blocks"** control, which opens
+the editor on a long article with headings, lists, quotes and links in it. A
+coder passing a scale test off-device is not the same as an editor being usable
+with that much loaded, and this is how you check the second one. It is how the
+Android indent bug was found, which was invisible at two paragraphs and
+unmissable at six hundred.
+
 ### Where compression belongs
 
 Between the picker handing you a file and the editor being told about it, the
@@ -299,7 +308,12 @@ before and would break again:
 - no event directive is used that the precompiler does not recognise, because a
   misspelling is dropped in silence — `@swipe-delete` did nothing at all until
   it became `@swipeDelete`;
+- no icon is used that Android cannot draw — the names are SF Symbols, and one
+  with no Material equivalent renders as empty space rather than as an error;
 - no component holds state that nothing ever reads.
+
+Each of those exists because it happened here, and each fails naming the file
+and the offending line rather than merely going red.
 
 ## Licence
 
