@@ -186,8 +186,16 @@ document on both.
 ## Running it
 
 ```bash
-composer install && php artisan migrate
+composer install
 ```
+
+```bash
+cp .env.example .env && php artisan key:generate && php artisan migrate
+```
+
+The `.env` step is not optional: a clone has no `.env`, and without an
+`APP_KEY` Laravel throws *"No application encryption key has been specified"*
+the moment anything touches the session — including one of the tests.
 
 ```bash
 php artisan native:run ios
