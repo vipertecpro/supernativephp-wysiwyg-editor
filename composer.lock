@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4d9b74768d7996baeae61df63e517961",
+    "content-hash": "943c4a75412371c5a34af479054832dd",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6747,11 +6747,17 @@
         },
         {
             "name": "vipertecpro/wysiwyg-editor",
-            "version": "dev-main",
+            "version": "v0.8.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vipertecpro/wysiwyg-editor.git",
+                "reference": "7ade7f9ca36d2a7c75d285320029b819a984d037"
+            },
             "dist": {
-                "type": "path",
-                "url": "../wysiwyg-editor",
-                "reference": "45d5ef2a1816e1ec554752cae490417e5dabd159"
+                "type": "zip",
+                "url": "https://api.github.com/repos/vipertecpro/wysiwyg-editor/zipball/7ade7f9ca36d2a7c75d285320029b819a984d037",
+                "reference": "7ade7f9ca36d2a7c75d285320029b819a984d037",
+                "shasum": ""
             },
             "require": {
                 "nativephp/mobile": "^3.0|^4.0",
@@ -6779,15 +6785,7 @@
                     "Vipertecpro\\WysiwygEditor\\": "src/"
                 }
             },
-            "scripts": {
-                "test": [
-                    "pest"
-                ],
-                "test:ios": [
-                    "tests/native/ios/typecheck.sh",
-                    "tests/native/ios/run.sh"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -6808,9 +6806,11 @@
                 "text",
                 "wysiwyg"
             ],
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/vipertecpro/wysiwyg-editor/issues",
+                "source": "https://github.com/vipertecpro/wysiwyg-editor/tree/v0.8.5"
+            },
+            "time": "2026-08-01T17:25:54+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -10815,9 +10815,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "vipertecpro/wysiwyg-editor": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
