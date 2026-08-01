@@ -1,6 +1,6 @@
 # WYSIWYG Editor — a NativePHP Mobile demo app
 
-Nine screens, one plugin. Every screen opens the **same** native rich text
+Ten screens, one plugin. Every screen opens the **same** native rich text
 editor — [`vipertecpro/wysiwyg-editor`](https://github.com/vipertecpro/wysiwyg-editor)
 — configured differently, to show how far one editor stretches before you have
 to write your own.
@@ -14,6 +14,56 @@ No webview. No third-party editor. A native `UITextView` on iOS, a native
 `EditText` on Android, and clean normalised HTML back to PHP.
 
 ---
+
+## Start here — the payload
+
+Before the demos, the data. This screen shows the editor being an **API** rather
+than a product, because that is what you have to understand before you can build
+against it: what arrives, in what shape, and what you are expected to do with the
+parts.
+
+| The three formats, with sizes | The files, split out | Every event, in order |
+| --- | --- | --- |
+| ![HTML pane](docs/screenshots/ios/12-payload-html.png) | ![Files pane](docs/screenshots/ios/13-payload-files.png) | ![Log pane](docs/screenshots/ios/14-payload-log.png) |
+
+**The three formats.** `ContentSaved` hands you `$html`, `$text` and `$json`.
+Which you store is a real decision, so their byte sizes sit on the tabs — a
+document with four photos in it is not the same shape of request as one without.
+
+**The files, separately.** Media is **not** embedded in any of the three: the
+markup only references a path. `WysiwygEditor::attachments($json)` is the split,
+and each row shows `src` (where the document points) and `local` (the file on
+this device) as the different things they are, plus the size, the upload state,
+and the correlation id while an upload is still in flight.
+
+**The conversation.** Every event the editor fired and every call back into it,
+newest first, timestamped — including failures. This is the part worth having:
+an exception thrown inside an event handler on a phone leaves *nothing* behind,
+no console and no stack trace, just a screen that quietly stopped updating. The
+handlers here catch and record instead.
+
+### Where compression belongs
+
+Between the picker handing you a file and the editor being told about it, the
+file is still yours — nothing has been uploaded and the editor has not seen it.
+That is the seam, and `App\Support\MediaOptimizer` is it:
+
+```php
+$optimized = MediaOptimizer::optimize($pickedPath, 'image');
+
+WysiwygEditor::insertMedia('image', ['localPath' => $optimized->path, ...]);
+```
+
+Whatever you return is what the user sees **and** what gets uploaded, so there
+is no second copy to keep in step. Resize, re-encode, strip EXIF, convert HEIC,
+or refuse a file that is too large and say why. Every failure path hands back
+the original with the reason recorded — an unoptimized picture beats a lost one.
+
+> **Worth knowing:** the PHP bundled inside a NativePHP app has no usable GD —
+> `imagejpeg()` is absent — so image processing in PHP on the device is not
+> available. It has to be a native plugin or happen server-side. The screen
+> names the missing function rather than silently doing nothing, which is how we
+> found out.
 
 ## The five platform demos
 
@@ -113,6 +163,12 @@ byte. These are the same screens on a Pixel:
 | Autosave | Swipe to delete |
 | --- | --- |
 | ![Apple Notes on Android](docs/screenshots/android/10-apple-notes-editor.png) | ![Swipe on Android](docs/screenshots/android/11-apple-notes-swipe.png) |
+
+…and the payload screen, which is the same code reading the same events:
+
+| The files | The log |
+| --- | --- |
+| ![Files on Android](docs/screenshots/android/13-payload-files.png) | ![Log on Android](docs/screenshots/android/14-payload-log.png) |
 
 And what those composers saved, rendered back into each feed:
 
