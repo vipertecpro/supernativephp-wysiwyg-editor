@@ -22,7 +22,7 @@
                 },
                 "require": {
                     "php": "^8.2",
-                    "nativephp/mobile": "^4.0"
+                    "nativephp/mobile": "^4.0.1"
                 },
                 "autoload": {
                     "psr-4": {
@@ -51,11 +51,11 @@
         "php": "^8.3",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
-        "nativephp/mobile": "^4.0",
+        "nativephp/mobile": "^4.0.1",
         "nativephp/mobile-camera": "^1.0",
         "nativephp/native-ui": "0.1.0",
         "vipertecpro/image-cropper": "^1.0",
-        "vipertecpro/wysiwyg-editor": "^0.8"
+        "vipertecpro/wysiwyg-editor": "^0.8.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

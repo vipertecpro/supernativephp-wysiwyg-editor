@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cdf7ca27c9cdae3d0694bf1a8744acda",
+    "content-hash": "0b790e3046af5ec395c7873eb8fa2945",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2361,16 +2361,16 @@
         },
         {
             "name": "nativephp/mobile",
-            "version": "4.0.0",
+            "version": "4.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/NativePHP/mobile-air.git",
-                "reference": "7a9041ac3e9b095b91315377e421abf8543998c7"
+                "reference": "8537aab3fb7fd03f6131d021a64c519238f635c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/NativePHP/mobile-air/zipball/7a9041ac3e9b095b91315377e421abf8543998c7",
-                "reference": "7a9041ac3e9b095b91315377e421abf8543998c7",
+                "url": "https://api.github.com/repos/NativePHP/mobile-air/zipball/8537aab3fb7fd03f6131d021a64c519238f635c8",
+                "reference": "8537aab3fb7fd03f6131d021a64c519238f635c8",
                 "shasum": ""
             },
             "require": {
@@ -2450,9 +2450,9 @@
             ],
             "support": {
                 "issues": "https://github.com/NativePHP/mobile-air/issues",
-                "source": "https://github.com/NativePHP/mobile-air/tree/4.0.0"
+                "source": "https://github.com/NativePHP/mobile-air/tree/4.0.1"
             },
-            "time": "2026-07-30T02:45:28+00:00"
+            "time": "2026-07-31T19:44:23+00:00"
         },
         {
             "name": "nativephp/mobile-camera",
@@ -6747,16 +6747,16 @@
         },
         {
             "name": "vipertecpro/wysiwyg-editor",
-            "version": "v0.8.1",
+            "version": "v0.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vipertecpro/wysiwyg-editor.git",
-                "reference": "53a579790c5d0c1d91ed5f280654443c53891dd3"
+                "reference": "154c3a836d61ddb30a32060b75e376f428535124"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vipertecpro/wysiwyg-editor/zipball/53a579790c5d0c1d91ed5f280654443c53891dd3",
-                "reference": "53a579790c5d0c1d91ed5f280654443c53891dd3",
+                "url": "https://api.github.com/repos/vipertecpro/wysiwyg-editor/zipball/154c3a836d61ddb30a32060b75e376f428535124",
+                "reference": "154c3a836d61ddb30a32060b75e376f428535124",
                 "shasum": ""
             },
             "require": {
@@ -6808,9 +6808,9 @@
             ],
             "support": {
                 "issues": "https://github.com/vipertecpro/wysiwyg-editor/issues",
-                "source": "https://github.com/vipertecpro/wysiwyg-editor/tree/v0.8.1"
+                "source": "https://github.com/vipertecpro/wysiwyg-editor/tree/v0.8.2"
             },
-            "time": "2026-07-31T14:28:52+00:00"
+            "time": "2026-08-01T11:55:30+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
