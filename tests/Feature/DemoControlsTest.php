@@ -194,3 +194,54 @@ it('only uses event directives the precompiler recognises', function () {
 
     expect($unknown)->toBe([], 'directives that are silently dropped: '.implode(', ', $unknown));
 });
+
+/**
+ * An icon name that only iOS knows draws nothing at all on Android.
+ *
+ * Names are SF Symbols; NativePHP maps them onto Material icons for Android,
+ * and anything absent from that map renders as empty space. Three of them were
+ * in here — two in the payload log and one on the Notes screens — so a row of
+ * events had its direction markers on one platform only.
+ *
+ * The map is read out of the installed runtime rather than copied, so this
+ * follows NativePHP instead of drifting from it.
+ */
+it('only uses icons Android can actually draw', function () {
+    $helper = base_path('nativephp/android/app/src/main/java/com/nativephp/mobile/ui/IconHelper.kt');
+
+    if (! is_readable($helper)) {
+        $this->markTestSkipped('the Android runtime is not installed — run native:install android');
+    }
+
+    $mapped = [];
+
+    foreach (explode("\n", file_get_contents($helper)) as $line) {
+        if (! str_contains($line, '->')) {
+            continue;
+        }
+
+        preg_match_all('/"([a-zA-Z0-9._]+)"/', explode('->', $line)[0], $names);
+        $mapped = array_merge($mapped, $names[1]);
+    }
+
+    expect($mapped)->toContain('doc');
+
+    $missing = [];
+
+    $views = array_merge(
+        glob(resource_path('views/native/*.blade.php')),
+        glob(resource_path('views/native/**/*.blade.php')),
+    );
+
+    foreach ($views as $view) {
+        preg_match_all('/name="([a-z][a-zA-Z0-9._]*)"/', file_get_contents($view), $used);
+
+        foreach (array_unique($used[1]) as $icon) {
+            if (! in_array($icon, $mapped, true)) {
+                $missing[] = basename($view).' → '.$icon;
+            }
+        }
+    }
+
+    expect($missing)->toBe([], 'icons that draw nothing on Android: '.implode(', ', $missing));
+});

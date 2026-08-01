@@ -17,7 +17,7 @@
 
     @if ($notes->isEmpty())
         <column class="w-full flex-1 items-center justify-center gap-4 px-8">
-            <icon name="note.text" :size="60" class="text-theme-on-surface-variant" />
+            <icon name="doc" :size="60" class="text-theme-on-surface-variant" />
             <text class="text-center text-base font-semibold text-theme-on-surface">No notes yet</text>
             <text class="text-center text-sm text-theme-on-surface-variant">
                 Tap the pencil to write your first note with the native editor.

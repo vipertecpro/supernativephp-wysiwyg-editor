@@ -10,6 +10,11 @@
     "license": "MIT",
     "repositories": [
         {
+            "name": "plugin",
+            "type": "path",
+            "url": "../wysiwyg-editor"
+        },
+        {
             "type": "package",
             "package": {
                 "name": "nativephp/native-ui",
@@ -55,7 +60,7 @@
         "nativephp/mobile-camera": "^1.0",
         "nativephp/native-ui": "0.1.0",
         "vipertecpro/image-cropper": "^1.0",
-        "vipertecpro/wysiwyg-editor": "^0.8.2"
+        "vipertecpro/wysiwyg-editor": "*@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

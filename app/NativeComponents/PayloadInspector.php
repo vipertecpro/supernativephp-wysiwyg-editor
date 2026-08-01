@@ -63,6 +63,9 @@ class PayloadInspector extends NativeComponent
     /** Set when the document was committed rather than merely edited. */
     public bool $saved = false;
 
+    /** How many blocks the stress document has. Enough to be unreasonable. */
+    public const HEAVY_BLOCKS = 600;
+
     public function show(string $pane): void
     {
         if (in_array($pane, ['html', 'text', 'json', 'files', 'log'], true)) {
@@ -89,6 +92,41 @@ class PayloadInspector extends NativeComponent
         ]);
 
         PayloadLog::call('WysiwygEditor::open', 'id=payload');
+    }
+
+    /**
+     * Open the editor on a deliberately large document.
+     *
+     * The coder is proved against documents far bigger than this by the
+     * plugin's own parity harness, but a coder is not an editor: this opens a
+     * real one, on a real device, with hundreds of blocks in it — which is
+     * where scrolling, layout and the caret either hold up or do not.
+     *
+     * A long article with pictures is a real document. This is one.
+     */
+    public function loadHeavy(): void
+    {
+        $html = '';
+
+        for ($i = 1; $i <= self::HEAVY_BLOCKS; $i++) {
+            $html .= match ($i % 5) {
+                0 => '<h2>Section '.$i.'</h2>',
+                1 => '<p>Paragraph '.$i.' with <strong>bold</strong>, <em>italic</em> and '
+                    .'<a href="https://nativephp.com">a link</a> in it, long enough to wrap '
+                    .'onto more than one line on a phone so the layout has something to do.</p>',
+                2 => '<ul><li>First item</li><li>Second item</li><li>Third item</li></ul>',
+                3 => '<blockquote>Quoted passage number '.$i.'.</blockquote>',
+                default => '<p>Short line '.$i.'.</p>',
+            };
+        }
+
+        $this->html = $html;
+        $this->text = '';
+        $this->json = '';
+
+        PayloadLog::call('loadHeavy', self::HEAVY_BLOCKS.' blocks · '.strlen($html).' B of HTML');
+
+        $this->compose();
     }
 
     public function clearLog(): void

@@ -44,7 +44,7 @@
 
     @if ($notes->isEmpty())
         <column class="w-full flex-1 items-center justify-center gap-3 px-10">
-            <icon name="note.text" :size="44" class="text-theme-on-surface-variant" />
+            <icon name="doc" :size="44" class="text-theme-on-surface-variant" />
             <text class="text-[17] font-bold text-theme-on-surface">No notes in {{ $folder }}</text>
             <text class="text-center text-[14] text-theme-on-surface-variant">
                 Start one — there is no Save button, because there is nothing to save.

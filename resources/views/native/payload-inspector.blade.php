@@ -40,6 +40,15 @@
         @endif
     </row>
 
+    {{-- Somewhere to prove the thing holds up. A coder passing a scale test
+         off-device is not the same as an editor being usable with 600 blocks
+         in it, and this is how you check the second one. --}}
+    <row class="w-full items-center gap-2 px-4 pb-3">
+        <pressable @press="loadHeavy" a11y-label="Load a large document" class="flex-1 items-center rounded-xl bg-theme-surface-variant py-3">
+            <text class="text-[13] text-theme-on-surface">Stress it — open {{ \App\NativeComponents\PayloadInspector::HEAVY_BLOCKS }} blocks</text>
+        </pressable>
+    </row>
+
     {{-- The panes. Sizes live on the tabs because "which format do I store"
          is partly a question about how big each one is. --}}
     <scroll-view horizontal class="w-full">
@@ -119,7 +128,7 @@
 
                 @if ($optimization !== '')
                     <row class="w-full items-center gap-2 rounded-xl bg-theme-surface-variant px-3 py-3">
-                        <icon name="arrow.down.circle" :size="16" class="text-theme-primary" />
+                        <icon name="arrow.down" :size="16" class="text-theme-primary" />
                         <text class="flex-1 text-[12] text-theme-on-surface">
                             Last optimize — {{ $optimization }}
                         </text>
@@ -186,9 +195,9 @@
                             @if ($entry['kind'] === 'failure')
                                 <icon name="exclamationmark.triangle" :size="13" class="text-[#EF4444]" />
                             @elseif ($entry['kind'] === 'call')
-                                <icon name="arrow.up.circle" :size="13" class="text-theme-on-surface-variant" />
+                                <icon name="arrow.up" :size="13" class="text-theme-on-surface-variant" />
                             @else
-                                <icon name="arrow.down.circle" :size="13" class="text-theme-primary" />
+                                <icon name="arrow.down" :size="13" class="text-theme-primary" />
                             @endif
                             <text class="flex-1 text-[13] font-semibold {{ $entry['kind'] === 'failure' ? 'text-[#EF4444]' : 'text-theme-on-surface' }}">
                                 {{ $entry['event'] }}
