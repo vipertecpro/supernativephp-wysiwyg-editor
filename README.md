@@ -213,10 +213,18 @@ adb shell pm clear com.vipertecpro.wysiwygdemo
 xcrun simctl uninstall booted com.vipertecpro.wysiwygdemo
 ```
 
-> This repo consumes the plugin through a Composer **path repository**
-> (`../wysiwyg-editor`) so both can be developed side by side. To use the
-> published package instead, drop that entry from `composer.json` and require
-> `vipertecpro/wysiwyg-editor` normally.
+This app requires the **published** plugin from Packagist, so cloning it and
+running `composer install` is all there is to it.
+
+If you are working on the plugin itself and want this app to use your checkout
+rather than the release, point Composer at it:
+
+```bash
+composer config repositories.plugin path ../wysiwyg-editor && composer update vipertecpro/wysiwyg-editor
+```
+
+That edit is local to your `composer.json` — do not commit it, or everyone
+cloning this repo gets an install that only works on your machine.
 
 ---
 
